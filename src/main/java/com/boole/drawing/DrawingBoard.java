@@ -22,10 +22,6 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
     private final int leftShift = 6;
     private final int width = 25;
 
-    public static void main(String[] args) {
-        new DrawingBoard();
-    }
-
     public DrawingBoard() {
         this.controlHandler = new ControlHandler(this);
 
@@ -38,7 +34,7 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
         this.window = new JFrame();
         this.window.setContentPane(this);
         this.window.setTitle("Character Detection");
-        this.window.getContentPane().setPreferredSize(new Dimension(Constant.frameSize, Constant.frameSize));
+        this.window.getContentPane().setPreferredSize(new Dimension(Constant.drawingBoardSize, Constant.drawingBoardSize));
         this.window.getContentPane().setBackground(Color.BLACK);
         this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.window.pack();
@@ -47,7 +43,7 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
         this.window.setResizable(false);
         this.graphics = (Graphics2D) this.window.getGraphics();
 
-        this.originalImage = new BufferedImage(Constant.frameSize, Constant.frameSize, BufferedImage.TYPE_INT_RGB);
+        this.originalImage = new BufferedImage(Constant.drawingBoardSize, Constant.drawingBoardSize, BufferedImage.TYPE_INT_RGB);
         this.imageGraphics = this.originalImage.createGraphics();
 
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
