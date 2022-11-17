@@ -10,10 +10,6 @@ public class Home extends JPanel implements ActionListener {
 
     private final JFrame window;
     private final Graphics2D graphics;
-    private int lastX = Integer.MIN_VALUE, lastY;
-    private final int downShift = -20;
-    private final int leftShift = 6;
-    private final int width = 25;
 
     public static void main(String[] args) {
         new Home();
@@ -27,7 +23,7 @@ public class Home extends JPanel implements ActionListener {
 
         this.window = new JFrame();
         this.window.setContentPane(this);
-        this.window.setTitle("Digit Detection");
+        this.window.setTitle("Digit Detector");
         this.window.getContentPane().setPreferredSize(new Dimension(720, 480));
         this.window.getContentPane().setBackground(Color.BLACK);
         this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

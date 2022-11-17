@@ -33,7 +33,7 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
 
         this.window = new JFrame();
         this.window.setContentPane(this);
-        this.window.setTitle("Character Detection");
+        this.window.setTitle("Digit Detector");
         this.window.getContentPane().setPreferredSize(new Dimension(Constant.drawingBoardSize, Constant.drawingBoardSize));
         this.window.getContentPane().setBackground(Color.BLACK);
         this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
