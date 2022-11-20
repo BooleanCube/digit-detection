@@ -24,8 +24,8 @@ public class MnistParser {
         for(MnistMatrix matrix : data) {
             BufferedImage image = new BufferedImage(Constant.imageSize, Constant.imageSize, BufferedImage.TYPE_INT_RGB);
             Graphics gfx = image.createGraphics();
-            for(int r = 0; r < matrix.getNumberOfRows(); r++ ) {
-                for(int c = 0; c < matrix.getNumberOfColumns(); c++) {
+            for(int r=0; r<matrix.getNumberOfRows(); r++ ) {
+                for(int c=0; c<matrix.getNumberOfColumns(); c++) {
                     int rgb = matrix.getValue(r, c);
                     gfx.setColor(new Color(rgb, rgb, rgb));
                     gfx.fillRect(r, c, 1, 1);
@@ -43,8 +43,8 @@ public class MnistParser {
     // prints matrix for debugging
     private static void printMnistMatrix(final MnistMatrix matrix) {
         System.out.println(matrix.getLabel());
-        for(int r = 0; r < matrix.getNumberOfRows(); r++ ) {
-            for(int c = 0; c < matrix.getNumberOfColumns(); c++) {
+        for(int r=0; r<matrix.getNumberOfRows(); r++ ) {
+            for(int c=0; c<matrix.getNumberOfColumns(); c++) {
                 System.out.print(matrix.getValue(r, c) + " ");
             }
             System.out.println();

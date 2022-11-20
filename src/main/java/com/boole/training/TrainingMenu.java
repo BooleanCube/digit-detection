@@ -1,10 +1,13 @@
 package com.boole.training;
 
+import com.boole.Home;
+import com.boole.network.ParamManager;
 import com.boole.style;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 public class TrainingMenu extends JPanel implements ActionListener {
 
@@ -84,11 +87,26 @@ public class TrainingMenu extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent actionEvent) {
         String command = stripHTMLTags(actionEvent.getActionCommand());
         if (command.startsWith("reset")) {
+            int response = JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure you want to lose all training progress?",
+                    "Confirm",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if(response == JOptionPane.NO_OPTION || response == JOptionPane.CLOSED_OPTION) return;
+
             // close this window
             this.window.setVisible(false);
             this.window.dispose();
 
-            // TODO: Randomize the paramater values in database/params.json
+            try {
+                ParamManager.resetTrainingData();
+            } catch(IOException e) { throw new RuntimeException(e); }
+
+            // restart application after resetting all training data
+            Home home = new Home();
         } else if(command.startsWith("train")) {
             // close this window
             this.window.setVisible(false);

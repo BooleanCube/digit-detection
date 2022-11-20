@@ -1,11 +1,15 @@
 package com.boole;
 
 import com.boole.drawing.DrawingBoard;
+import com.boole.network.ParamManager;
 import com.boole.training.TrainingMenu;
+import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.util.Arrays;
 
 public class Home extends JPanel implements ActionListener {
 
@@ -13,6 +17,9 @@ public class Home extends JPanel implements ActionListener {
     private final Graphics2D graphics;
 
     public static void main(String[] args) {
+        try {
+            ParamManager.init();
+        } catch (IOException | ParseException e) { throw new RuntimeException(e); }
         new Home();
     }
 
