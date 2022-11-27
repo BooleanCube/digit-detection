@@ -1,4 +1,4 @@
-package com.boole.detector;
+package com.boole.output;
 
 import com.boole.Settings;
 import com.boole.style;

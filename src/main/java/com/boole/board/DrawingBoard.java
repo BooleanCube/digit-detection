@@ -1,4 +1,4 @@
-package com.boole.drawing;
+package com.boole.board;
 
 import com.boole.Constant;
 import com.boole.Settings;

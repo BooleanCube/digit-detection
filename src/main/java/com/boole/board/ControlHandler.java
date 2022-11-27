@@ -1,4 +1,4 @@
-package com.boole.drawing;
+package com.boole.board;
 
 import javax.swing.*;
 import java.awt.*;
