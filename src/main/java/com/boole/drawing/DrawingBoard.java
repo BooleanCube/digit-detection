@@ -1,6 +1,7 @@
 package com.boole.drawing;
 
 import com.boole.Constant;
+import com.boole.Settings;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -46,11 +47,7 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
         this.originalImage = new BufferedImage(Constant.drawingBoardSize, Constant.drawingBoardSize, BufferedImage.TYPE_INT_RGB);
         this.imageGraphics = this.originalImage.createGraphics();
 
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        Settings.setGraphicsRendering(this.graphics);
 
         this.controlHandler.addComponents();
         this.revalidate();

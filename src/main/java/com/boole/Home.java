@@ -41,11 +41,7 @@ public class Home extends JPanel implements ActionListener {
         this.window.setResizable(false);
         this.graphics = (Graphics2D) this.window.getGraphics();
 
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        Settings.setGraphicsRendering(this.graphics);
 
         this.addComponents();
         this.revalidate();
@@ -62,29 +58,35 @@ public class Home extends JPanel implements ActionListener {
 
         JButton trainButton = new JButton();
         trainButton.setText(centerFormatText("Train the neural network with random MNIST Database samples"));
-        trainButton.setHorizontalAlignment(SwingConstants.CENTER);
-        trainButton.setVerticalAlignment(SwingConstants.CENTER);
         trainButton.setFont(style.normalFont);
         trainButton.setName("train");
         trainButton.setFocusable(false);
         trainButton.addActionListener(this);
         trainButton.setMargin(new Insets(1, 1, 1, 1));
-        trainButton.setBounds(100, 220, 200, 160);
+        trainButton.setBounds(60, 220, 180, 160);
         trainButton.setVisible(true);
+        JButton statsButton = new JButton();
+        statsButton.setText(centerFormatText("Run tests to measure the statistics of the currently-trained neural network"));
+        statsButton.setFont(style.normalFont);
+        statsButton.setName("train");
+        statsButton.setFocusable(false);
+        statsButton.addActionListener(this);
+        statsButton.setMargin(new Insets(1, 1, 1, 1));
+        statsButton.setBounds(260, 220, 180, 160);
+        statsButton.setVisible(true);
         JButton detectButton = new JButton();
         detectButton.setText(centerFormatText("Detect your hand-written digits using the trained or untrained neural network"));
-        detectButton.setHorizontalAlignment(SwingConstants.CENTER);
-        detectButton.setVerticalAlignment(SwingConstants.CENTER);
         detectButton.setFont(style.normalFont);
         detectButton.setName("detect");
         detectButton.setFocusable(false);
         detectButton.addActionListener(this);
         detectButton.setMargin(new Insets(1, 1, 1, 1));
-        detectButton.setBounds(400, 220, 200, 160);
+        detectButton.setBounds(460, 220, 180, 160);
         detectButton.setVisible(true);
 
         this.window.add(chooseText);
         this.window.add(trainButton);
+        this.window.add(statsButton);
         this.window.add(detectButton);
     }
 
@@ -99,20 +101,27 @@ public class Home extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         String command = stripHTMLTags(actionEvent.getActionCommand());
-        if (command.startsWith("train")) {
-            // close this window
-            this.window.setVisible(false);
-            this.window.dispose();
+        if(command.startsWith("train")) {
+            closeWindow(this);
 
+            // create and open training menu for more selections
             TrainingMenu menu = new TrainingMenu();
         } else if(command.startsWith("detect")) {
-            // close this window
-            this.window.setVisible(false);
-            this.window.dispose();
+            closeWindow(this);
 
             // create and open drawing board
             DrawingBoard board = new DrawingBoard();
+        } else if(command.startsWith("run")) {
+            closeWindow(this);
+
+            // TODO start running the tests and open stats screen
         }
+    }
+
+    private static void closeWindow(Home home) {
+        // close this window
+        home.window.setVisible(false);
+        home.window.dispose();
     }
 
 }

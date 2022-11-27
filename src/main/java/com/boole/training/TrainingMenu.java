@@ -1,6 +1,7 @@
 package com.boole.training;
 
 import com.boole.Home;
+import com.boole.Settings;
 import com.boole.network.ParamManager;
 import com.boole.style;
 
@@ -15,7 +16,6 @@ public class TrainingMenu extends JPanel implements ActionListener {
     private final Graphics2D graphics;
 
     public TrainingMenu() {
-
         setLayout(null);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
@@ -32,11 +32,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
         this.window.setResizable(false);
         this.graphics = (Graphics2D) this.window.getGraphics();
 
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        Settings.setGraphicsRendering(this.graphics);
 
         this.addComponents();
         this.revalidate();
@@ -44,7 +40,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
     }
 
     private void addComponents() {
-        JLabel chooseText = new JLabel("<html><h1 align=\"center\">Select which training action you would like <br>to perform:</h1></html>");
+        JLabel chooseText = new JLabel(centerFormatHeader("Select which training action you would like <br>to perform:"));
         chooseText.setName("label1");
         chooseText.setFont(style.bigFont);
         chooseText.setForeground(style.lightText);
@@ -78,6 +74,9 @@ public class TrainingMenu extends JPanel implements ActionListener {
     private String centerFormatText(String text) {
         return "<html><p align=center>" + text + "</p></html>";
     }
+    private String centerFormatHeader(String text) {
+        return "<html><h1 align=center>" + text + "</h1></html>";
+    }
 
     private String stripHTMLTags(String html) {
         return html.substring("<html><p align=center>".length(), html.indexOf("</p></html>")).toLowerCase();
@@ -97,9 +96,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
 
             if(response == JOptionPane.NO_OPTION || response == JOptionPane.CLOSED_OPTION) return;
 
-            // close this window
-            this.window.setVisible(false);
-            this.window.dispose();
+            closeWindow(this);
 
             try {
                 ParamManager.resetTrainingData();
@@ -108,12 +105,16 @@ public class TrainingMenu extends JPanel implements ActionListener {
             // restart application after resetting all training data
             Home home = new Home();
         } else if(command.startsWith("train")) {
-            // close this window
-            this.window.setVisible(false);
-            this.window.dispose();
+            closeWindow(this);
 
             // TODO: Run the Neural Network through all parsed training sample data
         }
+    }
+
+    private static void closeWindow(TrainingMenu menu) {
+        // close this window
+        menu.window.setVisible(false);
+        menu.window.dispose();
     }
 
 }
