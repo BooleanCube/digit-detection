@@ -5,6 +5,8 @@ import java.util.ArrayList;
 public class NeuralNetwork {
 
     public Layer[] layers;
+    private int edgeCount;
+    private int biasCount;
 
     public NeuralNetwork(int layerCount) {
         this.layers = new Layer[layerCount];
@@ -56,45 +58,55 @@ class Layer {
 
 }
 
+class Edge {
+
+    private Node startNode;
+    private Node endNode;
+    private double weight;
+
+    public Edge(Node startNode, Node endNode, double weight) {
+        this.startNode = startNode;
+        this.endNode = endNode;
+        this.weight = weight;
+    }
+
+}
+
 class Node {
 
-    private int weight;
-    private int bias;
-    private int activation;
+    private double bias;
+    private double activation;
+    private Edge[] edges;
 
-    public Node(int weight, int bias, int activation) {
-        this.weight = weight;
+    public Node() {}
+
+    public Node(double bias, double activation) {
         this.bias = bias;
         this.activation = activation;
     }
 
-    public Node(int weight, int bias) {
-        this.weight = weight;
-        this.bias = bias;
+    public Node(double activation) {
+        this.activation = activation;
     }
 
-    public int getWeight() {
-        return weight;
-    }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    public int getBias() {
+    public double getBias() {
         return bias;
     }
 
-    public void setBias(int bias) {
+    public void setBias(double bias) {
         this.bias = bias;
     }
 
-    public int getActivation() {
+    public double getActivation() {
         return activation;
     }
 
-    public void setActivation(int activation) {
+    public void setActivation(double activation) {
         this.activation = activation;
+    }
+
+    public void connectToLayer(NeuralNetwork network, int layerIndex) {
+        // TODO connect this node and create edges connecting this node to all nodes in the next layer assigning edge weights from the database
     }
 
 }
