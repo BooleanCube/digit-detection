@@ -1,6 +1,7 @@
 package com.boole.output;
 
 import com.boole.Settings;
+import com.boole.network.models.Node;
 import com.boole.style;
 
 import javax.swing.*;
@@ -10,8 +11,9 @@ public class OutputDisplay extends JPanel {
 
     private final JFrame window;
     private final Graphics2D graphics;
+    private final Node[] guess;
 
-    public OutputDisplay() {
+    public OutputDisplay(Node[] guess) {
         setLayout(null);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
@@ -33,6 +35,8 @@ public class OutputDisplay extends JPanel {
         this.addComponents();
         this.revalidate();
         this.repaint();
+
+        this.guess = guess;
     }
 
     private void addComponents() {
@@ -42,7 +46,7 @@ public class OutputDisplay extends JPanel {
         guessLabel.setForeground(style.lightText);
         guessLabel.setVisible(true);
         guessLabel.setBounds(88, 26, 800, 200);
-        JLabel outputLabel = new JLabel(Integer.toString(0)); // TODO : add the answer instead of just 0
+        JLabel outputLabel = new JLabel(Integer.toString(0)); // TODO display all 10 possible guesses and activation values
         outputLabel.setName("label2");
         outputLabel.setFont(style.hugeFont);
         outputLabel.setForeground(style.lightText);

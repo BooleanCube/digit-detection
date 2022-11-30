@@ -1,5 +1,8 @@
 package com.boole.network;
 
+import com.boole.network.models.Layer;
+import com.boole.network.models.LayerType;
+import com.boole.network.models.NeuralNetwork;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -10,19 +13,31 @@ import java.util.Random;
 
 public class ParamManager {
 
-    private static final int weightCount = 12960;
-    private static final int biasCount = 42;
-    private static final int paramCount = weightCount + biasCount;
+    private int weightCount = 0;
+    private int biasCount = 0;
+    private int paramCount = 0;
 
-    private static final File paramDatabase = new File("database/params.json");
+    private File paramDatabase;
 
-    private static final double[] parameters = new double[paramCount];
+    private double[] parameters;
 
-    public static double[] getParameters() {
+    public double[] getParameters() {
         return parameters;
     }
 
-    public static void init() throws IOException, ParseException {
+    public ParamManager(NeuralNetwork network) throws IOException, ParseException {
+        for(int i=1; i<network.getLayerCount(); i++) {
+            Layer layer = network.getLayer(i);
+            if(layer.getType() != LayerType.BASE) this.biasCount += layer.getNodeCount();
+            this.weightCount += network.getLayer(i-1).getNodeCount() * layer.getNodeCount();
+        }
+        this.paramCount = this.weightCount + this.biasCount;
+        this.parameters = new double[this.paramCount];
+        this.paramDatabase = new File("database/params" + this.paramCount + ".json");
+        if(!this.paramDatabase.exists()) {
+            this.paramDatabase.createNewFile();
+            this.resetTrainingData();
+        }
         JSONParser parser = new JSONParser();
         JSONObject json = (JSONObject)(parser.parse(new FileReader(paramDatabase)));
         JSONArray jsonData = (JSONArray) json.get("params");
@@ -30,7 +45,7 @@ public class ParamManager {
         for(int i=0; i<paramCount; i++) parameters[i] = (double) jsonData.get(i);
     }
 
-    public static void resetTrainingData() throws IOException {
+    public void resetTrainingData() throws IOException {
         final int maxBound = 4;
         final int minBound = -maxBound;
 

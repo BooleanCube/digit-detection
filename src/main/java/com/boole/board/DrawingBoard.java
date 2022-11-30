@@ -2,6 +2,9 @@ package com.boole.board;
 
 import com.boole.Constant;
 import com.boole.Settings;
+import com.boole.network.Detector;
+import com.boole.network.models.Node;
+import com.boole.output.OutputDisplay;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -120,7 +123,10 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
             this.window.setVisible(false);
             this.window.dispose();
 
-            // TODO: send rendered image to neural network which will spit back the output
+            try {
+                Node[] output = Detector.detectDigit(image);
+                OutputDisplay display = new OutputDisplay(output);
+            } catch (IOException e) { throw new RuntimeException(e); }
         }
     }
 

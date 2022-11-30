@@ -2,7 +2,9 @@ package com.boole.training;
 
 import com.boole.Home;
 import com.boole.Settings;
+import com.boole.network.Detector;
 import com.boole.network.ParamManager;
+import com.boole.network.models.NeuralNetwork;
 import com.boole.style;
 
 import javax.swing.*;
@@ -99,7 +101,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
             closeWindow(this);
 
             try {
-                ParamManager.resetTrainingData();
+                Detector.network.getParamManager().resetTrainingData();
             } catch(IOException e) { throw new RuntimeException(e); }
 
             // restart application after resetting all training data
