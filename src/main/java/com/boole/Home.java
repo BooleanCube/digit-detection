@@ -17,12 +17,12 @@ public class Home extends JPanel implements ActionListener {
     private final Graphics2D graphics;
 
     public static void main(String[] args) {
-        new Home();
         try {
             Detector.init();
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
+        new Home();
     }
 
     public Home() {
