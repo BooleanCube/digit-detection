@@ -1,27 +1,25 @@
-package com.boole.output;
+package com.boole.statistics;
 
 import com.boole.Home;
 import com.boole.Settings;
-import com.boole.network.Detector;
 import com.boole.network.models.Node;
 import com.boole.style;
-import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 
-public class OutputDisplay extends JPanel implements ActionListener {
+public class TestingDisplay extends JPanel implements ActionListener {
 
     private final JFrame window;
     private final Graphics2D graphics;
-    private final Node[] output;
-    private String guess = "";
+    private double successCount;
+    private double totalCount;
+    private double successRate;
+    private double networkCost;
 
-    public OutputDisplay(Node[] guess) {
+    public TestingDisplay(double[] results) {
         setLayout(null);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
@@ -40,8 +38,10 @@ public class OutputDisplay extends JPanel implements ActionListener {
 
         Settings.setGraphicsRendering(this.graphics);
 
-        this.output = guess;
-        this.formatOutput();
+        this.successCount = results[0];
+        this.totalCount = results[1];
+        this.successRate = this.successCount/this.totalCount*100;
+        this.networkCost = results[2];
 
         this.addComponents();
         this.revalidate();
@@ -50,18 +50,18 @@ public class OutputDisplay extends JPanel implements ActionListener {
 
     // TODO make the output display look a lot cleaner
     private void addComponents() {
-        JLabel guessLabel = new JLabel(centerFormatHeader("If the guess is incorrect, <br>try training the neural network!<br><br><br>The neural network guesses:"));
-        guessLabel.setName("label1");
-        guessLabel.setFont(style.normalFont);
-        guessLabel.setForeground(style.lightText);
-        guessLabel.setVisible(true);
-        guessLabel.setBounds(150, 26, 600, 300);
-        JLabel outputLabel = new JLabel(newLineText(this.guess));
-        outputLabel.setName("label2");
-        outputLabel.setFont(style.bigFont);
-        outputLabel.setForeground(style.lightText);
-        outputLabel.setVisible(true);
-        outputLabel.setBounds(120, 240, 800, 200);
+        JLabel successRate = new JLabel(centerFormatHeader("The success rate of the neural network is: " + (int)this.successCount + "/" + (int)this.totalCount + " (" + this.successRate + "%)"));
+        successRate.setName("label1");
+        successRate.setFont(style.bigFont);
+        successRate.setForeground(style.lightText);
+        successRate.setVisible(true);
+        successRate.setBounds(150, 40, 400, 200);
+        JLabel networkCost = new JLabel(centerFormatHeader("The average cost of the network is: " + this.networkCost));
+        networkCost.setName("label2");
+        networkCost.setFont(style.bigFont);
+        networkCost.setForeground(style.lightText);
+        networkCost.setVisible(true);
+        networkCost.setBounds(150, 210, 400, 200);
 
         JButton homeButton = new JButton();
         homeButton.setText("Home");
@@ -72,27 +72,13 @@ public class OutputDisplay extends JPanel implements ActionListener {
         homeButton.setBounds(650, 460, 70, 20);
         homeButton.setVisible(true);
 
-        this.window.add(guessLabel);
-        this.window.add(outputLabel);
+        this.window.add(successRate);
+        this.window.add(networkCost);
         this.window.add(homeButton);
     }
 
     private String centerFormatHeader(String text) {
         return "<html><h1 align=center>" + text + "</h1></html>";
-    }
-    private String newLineText(String text) {
-        return "<html><p>" + text + "</p></html>";
-    }
-
-    private void formatOutput() {
-        int length = output.length;
-        for(int i=0; i<length/2; i++)
-            guess += i + "(" + (int)(output[i].getActivation()*100) + "%) - ";
-        guess = guess.substring(0, guess.length()-3);
-        guess += "<br>";
-        for(int i=length/2; i<length; i++)
-            guess += i + "(" + (int)(output[i].getActivation()*100) + "%) - ";
-        guess = guess.substring(0, guess.length()-3);
     }
 
     @Override

@@ -1,9 +1,14 @@
 package com.boole.network.models;
 
+import com.boole.Calculator;
+import com.boole.Constant;
+import com.boole.network.Detector;
 import com.boole.network.ParamManager;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 public class NeuralNetwork {
 
@@ -75,4 +80,41 @@ public class NeuralNetwork {
     public ParamManager getParamManager() {
         return params;
     }
+
+    public static double calculateAverageCost() throws IOException, ParseException {
+        int amt = Constant.testingData.length;
+        double averageCost = 0;
+        for(int i=0; i<amt; i++) {
+            File data = Constant.testingData[i];
+            Node[] output = Detector.detectDigit(data);
+            double[] exact = new double[output.length];
+            exact[Integer.parseInt(data.getName().split("_")[0])] = 1.0;
+            averageCost += Calculator.calculateCost(output, exact);
+        }
+        averageCost /= amt;
+        return averageCost;
+    }
+
+    public static double[] runTests() throws IOException, ParseException {
+        int amt = Constant.testingData.length;
+        double averageCost = 0;
+        double successful = 0;
+        for(int i=0; i<amt; i++) {
+            File data = Constant.testingData[i];
+            Node[] output = Detector.detectDigit(data);
+            double[] exact = new double[output.length];
+            int answer = Integer.parseInt(data.getName().split("_")[0]);
+            int guess = Calculator.findMaximumActivation(output);
+            if(answer==guess) successful++;
+            exact[answer] = 1.0;
+            averageCost += Calculator.calculateCost(output, exact);
+        }
+        averageCost /= amt;
+        return new double[]{successful, amt, averageCost};
+    }
+
+    public static void miniBatchTraining() {
+
+    }
+
 }

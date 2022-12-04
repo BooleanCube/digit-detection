@@ -50,7 +50,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
         chooseText.setBounds(88, 26, 800, 200);
 
         JButton trainButton = new JButton();
-        trainButton.setText(centerFormatText("Train the neural network with randomly parsed samples"));
+        trainButton.setText(centerFormatText("Train the neural network with randomly generated mini-batches (500-600 samples)"));
         trainButton.setFont(style.normalFont);
         trainButton.setName("train");
         trainButton.setFocusable(false);
@@ -67,10 +67,19 @@ public class TrainingMenu extends JPanel implements ActionListener {
         detectButton.setMargin(new Insets(1, 1, 1, 1));
         detectButton.setBounds(400, 220, 200, 160);
         detectButton.setVisible(true);
+        JButton homeButton = new JButton();
+        homeButton.setText(centerFormatText("Home"));
+        homeButton.setName("home");
+        homeButton.setFocusable(false);
+        homeButton.addActionListener(this);
+        homeButton.setMargin(new Insets(1, 1, 1, 1));
+        homeButton.setBounds(650, 460, 70, 20);
+        homeButton.setVisible(true);
 
         this.window.add(chooseText);
         this.window.add(trainButton);
         this.window.add(detectButton);
+        this.window.add(homeButton);
     }
 
     private String centerFormatText(String text) {
@@ -98,7 +107,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
 
             if(response == JOptionPane.NO_OPTION || response == JOptionPane.CLOSED_OPTION) return;
 
-            closeWindow(this);
+            this.closeWindow();
 
             try {
                 Detector.network.getParamManager().resetTrainingData();
@@ -107,16 +116,20 @@ public class TrainingMenu extends JPanel implements ActionListener {
             // restart application after resetting all training data
             Home home = new Home();
         } else if(command.startsWith("train")) {
-            closeWindow(this);
+            this.closeWindow();
 
             // TODO: Run the Neural Network through all parsed training sample data
+        } else if(command.equals("home")) {
+            this.closeWindow();
+
+            Home home = new Home();
         }
     }
 
-    private static void closeWindow(TrainingMenu menu) {
+    private void closeWindow() {
         // close this window
-        menu.window.setVisible(false);
-        menu.window.dispose();
+        this.window.setVisible(false);
+        this.window.dispose();
     }
 
 }

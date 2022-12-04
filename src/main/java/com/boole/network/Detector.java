@@ -46,6 +46,7 @@ public class Detector {
             }
         }
 
+        // calculate activations for all nodes in all layers
         for(int i=1; i<network.getLayerCount(); i++) {
             Layer previousLayer = network.getLayer(i-1);
             Layer currentLayer = network.getLayer(i);
@@ -53,12 +54,15 @@ public class Detector {
                 double activation = 0;
                 for(int k=0; k<previousLayer.getNodeCount(); k++) {
                     Node node = previousLayer.getNode(k);
-                    activation += node.getActivation() * node.getEdge(j).getWeight() + node.getBias();
+                    activation += node.getActivation() * node.getEdge(j).getWeight();
                 }
-                currentLayer.getNode(j).setActivation(Calculator.sigmoid(activation));
+                Node node = currentLayer.getNode(j);
+                activation += node.getBias();
+                node.setActivation(Calculator.sigmoid(activation));
             }
         }
 
+        // return output layer
         return network.getLayer(3).getNodes();
     }
 

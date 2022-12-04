@@ -3,6 +3,8 @@ package com.boole;
 import com.boole.board.DrawingBoard;
 import com.boole.network.Detector;
 import com.boole.network.ParamManager;
+import com.boole.network.models.NeuralNetwork;
+import com.boole.statistics.TestingDisplay;
 import com.boole.training.TrainingMenu;
 import org.json.simple.parser.ParseException;
 
@@ -104,26 +106,33 @@ public class Home extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent actionEvent) {
         String command = stripHTMLTags(actionEvent.getActionCommand());
         if(command.startsWith("train")) {
-            closeWindow(this);
+            this.closeWindow();
 
             // create and open training menu for more selections
             TrainingMenu menu = new TrainingMenu();
         } else if(command.startsWith("detect")) {
-            closeWindow(this);
+            this.closeWindow();
 
             // create and open drawing board
             DrawingBoard board = new DrawingBoard();
         } else if(command.startsWith("run")) {
-            closeWindow(this);
-
-            // TODO start running the tests and open stats screen
+            try {
+                // run all tests to measure the neural network
+                double[] results = NeuralNetwork.runTests();
+                this.closeWindow();
+                // create and open statistics display window
+                TestingDisplay display = new TestingDisplay(results);
+            } catch (IOException | ParseException e) {
+                throw new RuntimeException(e);
+            }
         }
+
     }
 
-    private static void closeWindow(Home home) {
+    private void closeWindow() {
         // close this window
-        home.window.setVisible(false);
-        home.window.dispose();
+        this.window.setVisible(false);
+        this.window.dispose();
     }
 
 }
