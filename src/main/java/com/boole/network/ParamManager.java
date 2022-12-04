@@ -25,6 +25,10 @@ public class ParamManager {
         return parameters;
     }
 
+    public double getParameter(int idx) {
+        return this.parameters[idx];
+    }
+
     public ParamManager(NeuralNetwork network) throws IOException, ParseException {
         for(int i=1; i<network.getLayerCount(); i++) {
             Layer layer = network.getLayer(i);

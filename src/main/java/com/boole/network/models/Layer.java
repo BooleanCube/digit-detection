@@ -20,6 +20,14 @@ public class Layer {
         return nodes;
     }
 
+    public Node getNode(int idx) {
+        return this.nodes[idx];
+    }
+
+    public void setNode(int idx, Node node) {
+        this.nodes[idx] = node;
+    }
+
     public void setNodes(Node[] nodes) {
         this.nodes = nodes;
         this.nodeCount = this.nodes.length;

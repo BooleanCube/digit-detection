@@ -27,6 +27,7 @@ public class Detector {
                 new Layer(LayerType.OUTPUT, new Node[10])
         );
         network.setParams();
+        network.setupLayers();
     }
 
     public static Node[] detectDigit(File imageFile) throws IOException, ParseException {

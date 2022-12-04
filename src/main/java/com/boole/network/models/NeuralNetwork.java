@@ -23,6 +23,10 @@ public class NeuralNetwork {
     public void setLayers(Layer... layers) {
         this.layers = layers;
         this.layerCount = this.layers.length;
+        for(int i=0; i<this.layerCount; i++) {
+            Layer layer = this.getLayer(i);
+            for(int j=0; j<layer.getNodeCount(); j++) layer.setNode(j, new Node());
+        }
     }
 
     public Layer getLayer(int index) {
@@ -36,6 +40,32 @@ public class NeuralNetwork {
             if(layer == null || this.layers[i-1] == null) return;
         }
         this.params = new ParamManager(this);
+    }
+
+    public void setupLayers() {
+        int currentIdx = 0;
+        for(int i=0; i<this.layerCount-1; i++) {
+            Layer firstLayer = this.getLayer(i);
+            Layer secondLayer = this.getLayer(i+1);
+            for(int j=0; j<firstLayer.getNodeCount(); j++) {
+                for(int k=0; k<secondLayer.getNodeCount(); k++) {
+                    Node start = firstLayer.getNode(j);
+                    Node end = secondLayer.getNode(k);
+                    Edge edge = new Edge(start, end, this.params.getParameter(currentIdx));
+                    start.addEdge(edge);
+                    end.addEdge(edge);
+                    currentIdx++;
+                }
+            }
+        }
+        for(int i=1; i<this.layerCount; i++) {
+            Layer layer = this.getLayer(i);
+            for(int j=0; j<layer.getNodeCount(); j++) {
+                Node node = layer.getNode(j);
+                node.setBias(this.params.getParameter(currentIdx));
+                currentIdx++;
+            }
+        }
     }
 
     public int getLayerCount() {

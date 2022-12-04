@@ -5,6 +5,7 @@ import com.boole.Settings;
 import com.boole.network.Detector;
 import com.boole.network.models.Node;
 import com.boole.output.OutputDisplay;
+import org.json.simple.parser.ParseException;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -114,9 +115,9 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
     public void actionPerformed(ActionEvent actionEvent) {
         String command = actionEvent.getActionCommand();
         if(command.equals("submit")) {
-            File image = null;
+            File image;
             try {
-                image = renderImage();
+                image = this.renderImage();
             } catch (IOException e) { throw new RuntimeException(e); }
 
             // shut down window
@@ -126,7 +127,7 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
             try {
                 Node[] output = Detector.detectDigit(image);
                 OutputDisplay display = new OutputDisplay(output);
-            } catch (IOException e) { throw new RuntimeException(e); }
+            } catch (IOException | ParseException e) { throw new RuntimeException(e); }
         }
     }
 

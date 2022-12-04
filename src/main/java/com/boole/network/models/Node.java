@@ -1,19 +1,21 @@
 package com.boole.network.models;
 
-import com.boole.network.models.Edge;
-import com.boole.network.models.NeuralNetwork;
+import java.util.ArrayList;
 
 public class Node {
 
     private double bias;
     private double activation;
-    private Edge[] edges;
+    private ArrayList<Edge> edges;
 
-    public Node() {}
+    public Node() {
+        this.edges = new ArrayList<>();
+    }
 
     public Node(double bias, double activation) {
         this.bias = bias;
         this.activation = activation;
+        this.edges = new ArrayList<>();
     }
 
     public Node(double activation) {
@@ -34,6 +36,18 @@ public class Node {
 
     public void setActivation(double activation) {
         this.activation = activation;
+    }
+
+    public ArrayList<Edge> getEdges() {
+        return this.edges;
+    }
+
+    public void setEdges(ArrayList<Edge> edges) {
+        this.edges = edges;
+    }
+
+    public void addEdge(Edge edge) {
+        this.edges.add(edge);
     }
 
     public void connectToLayer(NeuralNetwork network, int layerIndex) {
