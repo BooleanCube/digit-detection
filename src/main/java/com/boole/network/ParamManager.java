@@ -50,7 +50,7 @@ public class ParamManager {
     }
 
     public void resetTrainingData() throws IOException {
-        final int maxBound = 4;
+        final int maxBound = 1;
         final int minBound = -maxBound;
 
         JSONObject json = new JSONObject();

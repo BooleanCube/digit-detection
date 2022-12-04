@@ -1,5 +1,6 @@
 package com.boole.network;
 
+import com.boole.Calculator;
 import com.boole.Constant;
 import com.boole.network.models.Layer;
 import com.boole.network.models.LayerType;
@@ -33,12 +34,28 @@ public class Detector {
     public static Node[] detectDigit(File imageFile) throws IOException, ParseException {
         // initialize activation values for the first base layer of the neural network
         BufferedImage image = ImageIO.read(imageFile);
-        Node[] activationMatrix = network.getLayer(0).getNodes();
-        for(int i=0; i<activationMatrix.length; i+=Constant.imageSize) {
+        Layer baseLayer = network.getLayer(0);
+        for(int i=0; i<baseLayer.getNodeCount(); i+=Constant.imageSize) {
             for(int j=0; j<Constant.imageSize; j++) {
-                Color color = new Color(image.getRGB(i/Constant.imageSize, j), true);
-                int avg = (color.getRed() + color.getBlue() + color.getGreen())/3;
-                activationMatrix[i+j] = new Node(avg/255.0);
+                Color color = new Color(image.getRGB(j, i/Constant.imageSize), true);
+                double r = (255-color.getRed())*255/256.0;
+                double g = (255-color.getGreen())*255/256.0;
+                double b = (255-color.getBlue())*255/256.0;
+                int avg = (int)((r+g+b)/3);
+                baseLayer.getNode(i+j).setActivation((255-avg)/255.0);
+            }
+        }
+
+        for(int i=1; i<network.getLayerCount(); i++) {
+            Layer previousLayer = network.getLayer(i-1);
+            Layer currentLayer = network.getLayer(i);
+            for(int j=0; j<currentLayer.getNodeCount(); j++) {
+                double activation = 0;
+                for(int k=0; k<previousLayer.getNodeCount(); k++) {
+                    Node node = previousLayer.getNode(k);
+                    activation += node.getActivation() * node.getEdge(j).getWeight() + node.getBias();
+                }
+                currentLayer.getNode(j).setActivation(Calculator.sigmoid(activation));
             }
         }
 

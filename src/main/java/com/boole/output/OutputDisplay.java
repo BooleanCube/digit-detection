@@ -76,7 +76,6 @@ public class OutputDisplay extends JPanel {
         for(int i=length/2; i<length; i++)
             guess += i + "(" + (int)(output[i].getActivation()*100) + "%) - ";
         guess = guess.substring(0, guess.length()-3);
-        System.out.println(this.guess);
     }
 
 }

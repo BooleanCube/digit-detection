@@ -42,6 +42,10 @@ public class Node {
         return this.edges;
     }
 
+    public Edge getEdge(int idx) {
+        return this.edges.get(idx);
+    }
+
     public void setEdges(ArrayList<Edge> edges) {
         this.edges = edges;
     }
