@@ -113,8 +113,18 @@ public class NeuralNetwork {
         return new double[]{successful, amt, averageCost};
     }
 
+    /**
+     * Stochastic Gradient Descent with mini-batch samples for training.
+     * For training run-time optimizations.
+     */
     public static void miniBatchTraining() {
+        Random rand = new Random();
+        int amt = 500+rand.nextInt(101);
+        for(int i=0; i<Constant.trainingData.length/500; i++) {
+            for(int j=0; j<amt; j++) {
 
+            }
+        }
     }
 
 }
