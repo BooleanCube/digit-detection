@@ -8,6 +8,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 public class NeuralNetwork {
@@ -119,11 +120,13 @@ public class NeuralNetwork {
     public void miniBatchTraining(int batchSize, int sizeError) throws IOException, ParseException {
         double[] gradientVector = new double[this.getParamManager().getParamCount()];
 
+        int totalCases = 0;
         int baseAmt = batchSize-sizeError;
         int batches = Constant.trainingData.length/(int)(baseAmt*1.25);
         for(int i=0; i<batches; i++) {
             Random rand = new Random();
             int amt = baseAmt+rand.nextInt(2*sizeError+1);
+            totalCases += amt;
             for(int j=0; j<amt; j++) {
                 File data = Constant.trainingData[rand.nextInt(Constant.trainingData.length)];
                 Node[] output = NetworkManager.detectDigit(data);
@@ -156,6 +159,17 @@ public class NeuralNetwork {
 
             }
         }
+
+        for(int i=0; i<gradientVector.length; i++)
+            gradientVector[i] /= totalCases;
+        this.updateParameters(gradientVector);
+    }
+
+    public void updateParameters(double[] gradient) {
+        ParamManager params = this.params;
+        System.out.println(Arrays.toString(params.getParameters()));
+        for(int i=0; i<gradient.length; i++) params.getParameters()[i] += gradient[i];
+        System.out.println(Arrays.toString(params.getParameters()));
     }
 
 }

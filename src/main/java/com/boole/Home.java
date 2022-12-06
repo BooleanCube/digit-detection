@@ -16,7 +16,8 @@ public class Home extends JPanel implements ActionListener {
     private final JFrame window;
     private final Graphics2D graphics;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ParseException {
+        NetworkManager.init();
         new Home();
     }
 
@@ -72,7 +73,7 @@ public class Home extends JPanel implements ActionListener {
         statsButton.setBounds(260, 220, 180, 160);
         statsButton.setVisible(true);
         JButton detectButton = new JButton();
-        detectButton.setText(centerFormatText("Detect your hand-written digits using the trained or untrained neural network"));
+        detectButton.setText(centerFormatText("Detect your hand-written digits using the trained/untrained neural network"));
         detectButton.setFont(style.normalFont);
         detectButton.setName("detect");
         detectButton.setFocusable(false);

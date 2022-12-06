@@ -80,4 +80,17 @@ public class ParamManager {
         writer.close();
     }
 
+    public void updateTrainingData() throws IOException {
+        JSONObject json = new JSONObject();
+        JSONArray jsonData = new JSONArray();
+        for(int i=0; i<paramCount; i++)
+            jsonData.add(i, parameters[i]);
+        json.put("params", jsonData);
+
+        FileWriter writer = new FileWriter(paramDatabase);
+        writer.write(json.toString());
+        writer.flush();
+        writer.close();
+    }
+
 }
