@@ -15,6 +15,11 @@ import com.boole.network.models.Node;
  * y = goal
  * σ = sigmoid function symbol
  * ∂ = partial differential symbol
+ * ----
+ * Models =>
+ * C = (aL-y)^2
+ * zL = wL * aL + bL
+ * aL = σ(zL)
  */
 public class Calculator {
 
@@ -49,8 +54,7 @@ public class Calculator {
     /**
      * ∂C/∂wL => direction of the steepest descent with respect to the weight
      */
-    public static double weightPartialDiff(double currActivation, double prevActivation, double weight, double bias, double goal) {
-        double sum = weight * prevActivation + bias;
+    public static double weightPartialDiff(double prevActivation, double currActivation, double sum, double goal) {
         // Chain Rule ===>
         // ∂C/∂wL = ∂C/∂aL * ∂aL/∂zL * ∂zL/∂wL
         // Derivative of cost with respect to weight =
@@ -61,8 +65,7 @@ public class Calculator {
     /**
      * ∂C/∂bL => direction of the steepest descent with respect to the bias
      */
-    public static double biasPartialDiff(double currActivation, double prevActivation, double weight, double bias, double goal) {
-        double sum = weight * prevActivation + bias;
+    public static double biasPartialDiff(double currActivation, double sum, double goal) {
         // Chain Rule ===>
         // ∂C/∂bL = ∂C/∂aL * ∂aL/∂zL * ∂zL/∂bL
         // Derivative of cost with respect to weight =
@@ -73,8 +76,7 @@ public class Calculator {
     /**
      * ∂C/∂aL => direction of the steepest descent with respect to the previous activation
      */
-    public static double activationPartialDiff(double currActivation, double prevActivation, double weight, double bias, double goal) {
-        double sum = weight * prevActivation + bias;
+    public static double activationPartialDiff(double currActivation, double weight, double sum, double goal) {
         // Chain Rule ===>
         // ∂C/∂aL = ∂C/∂aL * ∂aL/∂zL * ∂zL/∂aL
         // Derivative of cost with respect to previous activation =
@@ -84,7 +86,7 @@ public class Calculator {
 
     // ∂C/∂aL (Derivative of cost with respect to activation)
     public static double costDiffActivation(double activation, double goal) {
-        return 2*(activation+goal);
+        return 2*(activation-goal);
     }
 
     // ∂aL/∂zL (Derivative of activation with respect to sum)

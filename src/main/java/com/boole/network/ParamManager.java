@@ -25,6 +25,18 @@ public class ParamManager {
         return parameters;
     }
 
+    public int getParamCount() {
+        return paramCount;
+    }
+
+    public int getWeightCount() {
+        return weightCount;
+    }
+
+    public int getBiasCount() {
+        return biasCount;
+    }
+
     public double getParameter(int idx) {
         return this.parameters[idx];
     }

@@ -1,9 +1,7 @@
 package com.boole;
 
 import com.boole.board.DrawingBoard;
-import com.boole.network.Detector;
-import com.boole.network.ParamManager;
-import com.boole.network.models.NeuralNetwork;
+import com.boole.network.NetworkManager;
 import com.boole.statistics.TestingDisplay;
 import com.boole.training.TrainingMenu;
 import org.json.simple.parser.ParseException;
@@ -19,11 +17,6 @@ public class Home extends JPanel implements ActionListener {
     private final Graphics2D graphics;
 
     public static void main(String[] args) {
-        try {
-            Detector.init();
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
         new Home();
     }
 
@@ -118,7 +111,7 @@ public class Home extends JPanel implements ActionListener {
         } else if(command.startsWith("run")) {
             try {
                 // run all tests to measure the neural network
-                double[] results = NeuralNetwork.runTests();
+                double[] results = NetworkManager.getNetwork().runTests();
                 this.closeWindow();
                 // create and open statistics display window
                 TestingDisplay display = new TestingDisplay(results);

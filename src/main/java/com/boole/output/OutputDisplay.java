@@ -2,17 +2,13 @@ package com.boole.output;
 
 import com.boole.Home;
 import com.boole.Settings;
-import com.boole.network.Detector;
 import com.boole.network.models.Node;
 import com.boole.style;
-import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 
 public class OutputDisplay extends JPanel implements ActionListener {
 

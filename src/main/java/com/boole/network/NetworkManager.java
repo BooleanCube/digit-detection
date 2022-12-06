@@ -14,9 +14,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class Detector {
+public class NetworkManager {
 
-    public static NeuralNetwork network;
+    private static NeuralNetwork network;
+
+    public static NeuralNetwork getNetwork() {
+        return network;
+    }
 
     public static void init() throws IOException, ParseException {
         // setup neural network model
@@ -32,6 +36,8 @@ public class Detector {
     }
 
     public static Node[] detectDigit(File imageFile) throws IOException, ParseException {
+        init();
+
         // initialize activation values for the first base layer of the neural network
         BufferedImage image = ImageIO.read(imageFile);
         Layer baseLayer = network.getLayer(0);
@@ -62,7 +68,6 @@ public class Detector {
             }
         }
 
-        // return output layer
         return network.getLayer(3).getNodes();
     }
 
