@@ -133,13 +133,27 @@ public class NeuralNetwork {
 
                 int currWeightIndex = this.getParamManager().getWeightCount()-1;
                 int currBiasIndex = this.getParamManager().getParamCount()-1;
-                for(int k=this.getLayer(this.layerCount-1).getNodeCount()-1; k>=0; k--) {
-                    Node current = this.getLayer(this.layerCount-1).getNode(k);
-                    double sum = 0;
-                    for(Node node : this.getLayer(this.layerCount-2).getNodes()) sum += node.getEdge(k).getWeight() * node.getActivation();
-                    sum += current.getBias();
-                    gradientVector[currBiasIndex--] += Calculator.biasPartialDiff(current.getActivation(), sum, expected[k]);
+                for(int k=this.layerCount-1; k>=0; k++) {
+                    Layer currentLayer = this.getLayer(k);
+                    if(k < this.layerCount-1) {
+                        Layer next = this.getLayer(k+1);
+
+                    }
+                    if(k > 0) {
+                        Layer previous = this.getLayer(k-1);
+                        for(int l=this.getLayer(k).getNodeCount()-1; l>=0; l--) {
+                            Node current = this.getLayer(k).getNode(l);
+                            double sum = 0;
+                            for(Node node : this.getLayer(k-1).getNodes()) sum += node.getEdge(l).getWeight() * node.getActivation();
+                            sum += current.getBias();
+                            gradientVector[currBiasIndex--] += Calculator.biasPartialDiff(current.getActivation(), sum, k == this.layerCount-1 ? expected[l] : this.getLayer(k+1).getNode(l).getActivation());
+                        }
+                    }
+                    Layer next = this.getLayer(k+1);
+                    Layer previous = this.getLayer(k-1);
                 }
+
+
             }
         }
     }
