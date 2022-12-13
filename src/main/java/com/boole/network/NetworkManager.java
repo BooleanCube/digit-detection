@@ -97,24 +97,24 @@ public class NetworkManager {
                     Node currentNode = outputLayer.getNode(k);
                     double delta = currentNode.getActivation() - expected[k];
                     currentNode.setActivation(delta);
+                    int biasIndex = currentNode.getParamIndex();
+                    double shiftBias = -Calculator.learnRate * delta;
+                    gradientVector[biasIndex] += shiftBias;
+                    currentNode.setBias(currentNode.getBias() + shiftBias);
                     for(int l=0; l<hiddenLayer.getNodeCount(); l++) {
                         Node hiddenNode = hiddenLayer.getNode(l);
                         Edge weight = hiddenNode.getEdge(k);
                         int weightIndex = weight.getParamIndex();
-                        int biasIndex = currentNode.getParamIndex();
 
                         double shiftWeight = -Calculator.learnRate * delta * hiddenNode.getActivation();
-                        double shiftBias = -Calculator.learnRate * delta;
 
                         gradientVector[weightIndex] += shiftWeight;
-                        gradientVector[biasIndex] += shiftBias;
                         weight.setWeight(weight.getWeight() + shiftWeight);
-                        currentNode.setBias(currentNode.getBias() + shiftBias);
                     }
                 }
 
                 // hidden to hidden/input layers
-                for(int k = network.getLayerCount() -2; k>0; k--) {
+                for(int k=network.getLayerCount()-3; k>=0; k--) {
                     Layer prevLayer = network.getLayer(k+1);
                     Layer currentLayer = network.getLayer(k);
 
@@ -122,8 +122,10 @@ public class NetworkManager {
                     for(int l=0; l<prevLayer.getNodeCount(); l++) {
                         Node currentNode = prevLayer.getNode(l);
                         double activation = currentNode.getActivation();
-                        for(int m=0; m<currentLayer.getNodeCount(); m++)
-                            result[m] += currentLayer.getNode(m).getEdge(l).getWeight() * activation;
+                        for(int m=0; m<currentLayer.getNodeCount(); m++) {
+                            Edge weight = currentLayer.getNode(m).getEdge(l);
+                            result[m] += (weight.getWeight()) * activation;
+                        }
                     }
                     for(int l=0; l<result.length; l++) result[l] *= Calculator.sigmoidPrime(currentLayer.getNode(l).getActivation());
 
@@ -131,25 +133,27 @@ public class NetworkManager {
                         Node currentNode = prevLayer.getNode(l);
                         double delta = result[l];
                         currentNode.setActivation(delta);
+                        int biasIndex = currentNode.getParamIndex();
+                        double shiftBias = -Calculator.learnRate * delta;
+                        gradientVector[biasIndex] += shiftBias;
+                        currentNode.setBias(currentNode.getBias() + shiftBias);
                         for(int m=0; m<currentLayer.getNodeCount(); m++) {
                             Node hiddenNode = currentLayer.getNode(m);
                             Edge weight = hiddenNode.getEdge(l);
                             int weightIndex = weight.getParamIndex();
-                            int biasIndex = currentNode.getParamIndex();
 
                             double shiftWeight = -Calculator.learnRate * delta * hiddenNode.getActivation();
-                            double shiftBias = -Calculator.learnRate * delta;
 
                             gradientVector[weightIndex] += shiftWeight;
-                            gradientVector[biasIndex] += shiftBias;
                             weight.setWeight(weight.getWeight() + shiftWeight);
-                            currentNode.setBias(currentNode.getBias() + shiftBias);
                         }
                     }
                 }
             }
         }
-        System.out.println(Arrays.toString(gradientVector));
+        for(int i=0; i<network.getParamManager().getParamCount(); i++) {
+            System.out.println(i + ": " + gradientVector[i]);
+        }
 
         network.updateParameters(gradientVector);
     }

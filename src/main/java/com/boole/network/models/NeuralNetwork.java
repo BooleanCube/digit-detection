@@ -97,11 +97,11 @@ public class NeuralNetwork {
     }
 
     public double[] runTests() throws IOException, ParseException {
-        int amt = 100; //Constant.testingData.length;
+        int amt = 1000;
         double averageCost = 0;
         double successful = 0;
         for(int i=0; i<amt; i++) {
-            File data = Constant.testingData[i];
+            File data = Constant.testingData[i*9];
             Node[] output = NetworkManager.detectDigit(data);
             double[] exact = new double[output.length];
             int answer = Integer.parseInt(data.getName().split("_")[0]);
@@ -116,7 +116,7 @@ public class NeuralNetwork {
 
     public void updateParameters(double[] gradient) throws IOException {
         ParamManager params = this.params;
-        for(int i=0; i<gradient.length; i++) params.getParameters()[i] -= gradient[i];
+        for(int i=0; i<gradient.length; i++) params.getParameters()[i] += gradient[i];
         this.getParamManager().updateTrainingData();
     }
 
