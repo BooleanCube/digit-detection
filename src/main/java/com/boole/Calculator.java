@@ -25,9 +25,9 @@ public class Calculator {
 
     public static final double learnRate = 0.01;
 
-    private final static double sigmoidStretch = 1.5;
+    private final static double sigmoidStretch = 1;
 
-    // 1(1+e^(-x))^(-1)
+    // 1/(1+(e-stretch)^(-x))^(-1)
     public static double sigmoid(double x) {
         return 1/(1+Math.pow(Math.E-sigmoidStretch, -x));
     }

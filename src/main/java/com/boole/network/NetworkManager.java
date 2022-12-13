@@ -70,6 +70,42 @@ public class NetworkManager {
         return network.getLayer(3).getNodes();
     }
 
+    public static Node[] detectDigit(File imageFile, double[] gradient) throws IOException, ParseException {
+        init();
+
+        // initialize activation values for the first base layer of the neural network
+        BufferedImage image = ImageIO.read(imageFile);
+        Layer baseLayer = network.getLayer(0);
+        for(int i=0; i<baseLayer.getNodeCount(); i+=Constant.imageSize) {
+            for(int j=0; j<Constant.imageSize; j++) {
+                Color color = new Color(image.getRGB(j, i/Constant.imageSize), true);
+                double r = (255-color.getRed())*255/256.0;
+                double g = (255-color.getGreen())*255/256.0;
+                double b = (255-color.getBlue())*255/256.0;
+                int avg = (int)((r+g+b)/3);
+                baseLayer.getNode(i+j).setActivation((255-avg)/255.0);
+            }
+        }
+
+        // calculate activations for all nodes in all layers
+        for(int i=1; i<network.getLayerCount(); i++) {
+            Layer previousLayer = network.getLayer(i-1);
+            Layer currentLayer = network.getLayer(i);
+            for(int j=0; j<currentLayer.getNodeCount(); j++) {
+                double activation = 0;
+                for(int k=0; k<previousLayer.getNodeCount(); k++) {
+                    Node node = previousLayer.getNode(k);
+                    activation += node.getActivation() * (node.getEdge(j).getWeight() + gradient[node.getEdge(j).getParamIndex()]);
+                }
+                Node node = currentLayer.getNode(j);
+                activation += node.getBias() + gradient[node.getParamIndex()];
+                node.setActivation(Calculator.sigmoid(activation));
+            }
+        }
+
+        return network.getLayer(3).getNodes();
+    }
+
     /**
      * Gradient Descent with mini-batch samples for training.
      */
@@ -85,7 +121,7 @@ public class NetworkManager {
             totalCases += amt;
             for(int j=0; j<amt; j++) {
                 File data = Constant.trainingData[rand.nextInt(Constant.trainingData.length)];
-                Node[] output = NetworkManager.detectDigit(data);
+                Node[] output = NetworkManager.detectDigit(data, gradientVector);
                 double[] expected = new double[output.length];
                 int answer = Integer.parseInt(data.getName().split("_")[0]);
                 expected[answer] = 1;
@@ -100,7 +136,7 @@ public class NetworkManager {
                     int biasIndex = currentNode.getParamIndex();
                     double shiftBias = -Calculator.learnRate * delta;
                     gradientVector[biasIndex] += shiftBias;
-                    currentNode.setBias(currentNode.getBias() + shiftBias);
+                    currentNode.setBias(currentNode.getBias() + gradientVector[biasIndex]);
                     for(int l=0; l<hiddenLayer.getNodeCount(); l++) {
                         Node hiddenNode = hiddenLayer.getNode(l);
                         Edge weight = hiddenNode.getEdge(k);
@@ -109,7 +145,7 @@ public class NetworkManager {
                         double shiftWeight = -Calculator.learnRate * delta * hiddenNode.getActivation();
 
                         gradientVector[weightIndex] += shiftWeight;
-                        weight.setWeight(weight.getWeight() + shiftWeight);
+                        weight.setWeight(weight.getWeight() + gradientVector[weightIndex]);
                     }
                 }
 
@@ -124,7 +160,7 @@ public class NetworkManager {
                         double activation = currentNode.getActivation();
                         for(int m=0; m<currentLayer.getNodeCount(); m++) {
                             Edge weight = currentLayer.getNode(m).getEdge(l);
-                            result[m] += (weight.getWeight()) * activation;
+                            result[m] += (weight.getWeight() + gradientVector[weight.getParamIndex()]) * activation;
                         }
                     }
                     for(int l=0; l<result.length; l++) result[l] *= Calculator.sigmoidPrime(currentLayer.getNode(l).getActivation());
@@ -136,7 +172,7 @@ public class NetworkManager {
                         int biasIndex = currentNode.getParamIndex();
                         double shiftBias = -Calculator.learnRate * delta;
                         gradientVector[biasIndex] += shiftBias;
-                        currentNode.setBias(currentNode.getBias() + shiftBias);
+                        currentNode.setBias(currentNode.getBias() + gradientVector[biasIndex]);
                         for(int m=0; m<currentLayer.getNodeCount(); m++) {
                             Node hiddenNode = currentLayer.getNode(m);
                             Edge weight = hiddenNode.getEdge(l);
@@ -145,7 +181,7 @@ public class NetworkManager {
                             double shiftWeight = -Calculator.learnRate * delta * hiddenNode.getActivation();
 
                             gradientVector[weightIndex] += shiftWeight;
-                            weight.setWeight(weight.getWeight() + shiftWeight);
+                            weight.setWeight(weight.getWeight() + gradientVector[weightIndex]);
                         }
                     }
                 }
