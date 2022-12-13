@@ -1,3 +1,5 @@
+package com.boole;
+
 import com.boole.Constant;
 import com.boole.network.NetworkManager;
 import com.boole.network.models.Layer;
