@@ -4,6 +4,7 @@ import com.boole.Home;
 import com.boole.Settings;
 import com.boole.network.NetworkManager;
 import com.boole.style;
+import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -114,9 +115,11 @@ public class TrainingMenu extends JPanel implements ActionListener {
             // restart application after resetting all training data
             Home home = new Home();
         } else if(command.startsWith("train")) {
-            this.closeWindow();
-
-            // TODO: Run the Neural Network through all parsed training sample data
+            try {
+                NetworkManager.miniBatchTraining(200, 10);
+            } catch (IOException | ParseException e) {
+                throw new RuntimeException(e);
+            }
         } else if(command.equals("home")) {
             this.closeWindow();
 

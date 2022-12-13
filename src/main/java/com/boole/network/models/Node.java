@@ -7,8 +7,14 @@ public class Node {
     private double bias;
     private double activation;
     private ArrayList<Edge> edges;
+    private int paramIndex;
 
     public Node() {
+        this.edges = new ArrayList<>();
+    }
+
+    public Node(int paramIndex) {
+        this.paramIndex = paramIndex;
         this.edges = new ArrayList<>();
     }
 
@@ -56,6 +62,18 @@ public class Node {
 
     public void connectToLayer(NeuralNetwork network, int layerIndex) {
         // TODO connect this node and create edges connecting this node to all nodes in the next layer assigning edge weights from the database
+    }
+
+    public int getParamIndex() {
+        return paramIndex;
+    }
+
+    public void setParamIndex(int paramIndex) {
+        this.paramIndex = paramIndex;
+    }
+
+    public String toString() {
+        return "(" + this.getActivation() + ", " + this.getBias() + ")";
     }
 
 }

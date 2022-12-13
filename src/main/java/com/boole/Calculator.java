@@ -23,6 +23,8 @@ import com.boole.network.models.Node;
  */
 public class Calculator {
 
+    public static final double learnRate = 0.01;
+
     private final static double sigmoidStretch = 1.5;
 
     // 1(1+e^(-x))^(-1)

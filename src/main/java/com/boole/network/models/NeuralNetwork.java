@@ -16,6 +16,7 @@ public class NeuralNetwork {
     private Layer[] layers;
     private int layerCount;
     private ParamManager params;
+    private final double learnRate = -0.01;
 
     public NeuralNetwork(int layerCount) {
         this.layers = new Layer[layerCount];
@@ -57,7 +58,7 @@ public class NeuralNetwork {
                 for(int k=0; k<secondLayer.getNodeCount(); k++) {
                     Node start = firstLayer.getNode(j);
                     Node end = secondLayer.getNode(k);
-                    Edge edge = new Edge(start, end, this.params.getParameter(currentIdx));
+                    Edge edge = new Edge(start, end, currentIdx, this.params.getParameter(currentIdx));
                     start.addEdge(edge);
                     currentIdx++;
                 }
@@ -67,8 +68,8 @@ public class NeuralNetwork {
             Layer layer = this.getLayer(i);
             for(int j=0; j<layer.getNodeCount(); j++) {
                 Node node = layer.getNode(j);
-                node.setBias(this.params.getParameter(currentIdx));
-                currentIdx++;
+                node.setParamIndex(currentIdx++);
+                node.setBias(this.params.getParameter(node.getParamIndex()));
             }
         }
     }
@@ -96,7 +97,7 @@ public class NeuralNetwork {
     }
 
     public double[] runTests() throws IOException, ParseException {
-        int amt = Constant.testingData.length;
+        int amt = 100; //Constant.testingData.length;
         double averageCost = 0;
         double successful = 0;
         for(int i=0; i<amt; i++) {
@@ -113,63 +114,10 @@ public class NeuralNetwork {
         return new double[]{successful, amt, averageCost};
     }
 
-    /**
-     * Stochastic Gradient Descent with mini-batch samples for training.
-     * For training run-time optimizations.
-     */
-    public void miniBatchTraining(int batchSize, int sizeError) throws IOException, ParseException {
-        double[] gradientVector = new double[this.getParamManager().getParamCount()];
-
-        int totalCases = 0;
-        int baseAmt = batchSize-sizeError;
-        int batches = Constant.trainingData.length/(int)(baseAmt*1.25);
-        for(int i=0; i<batches; i++) {
-            Random rand = new Random();
-            int amt = baseAmt+rand.nextInt(2*sizeError+1);
-            totalCases += amt;
-            for(int j=0; j<amt; j++) {
-                File data = Constant.trainingData[rand.nextInt(Constant.trainingData.length)];
-                Node[] output = NetworkManager.detectDigit(data);
-                double[] expected = new double[output.length];
-                int answer = Integer.parseInt(data.getName().split("_")[0]);
-                expected[answer] = 1;
-
-                int currWeightIndex = this.getParamManager().getWeightCount()-1;
-                int currBiasIndex = this.getParamManager().getParamCount()-1;
-                for(int k=this.layerCount-1; k>=0; k++) {
-                    Layer currentLayer = this.getLayer(k);
-                    if(k < this.layerCount-1) {
-                        Layer next = this.getLayer(k+1);
-
-                    }
-                    if(k > 0) {
-                        Layer previous = this.getLayer(k-1);
-                        for(int l=this.getLayer(k).getNodeCount()-1; l>=0; l--) {
-                            Node current = this.getLayer(k).getNode(l);
-                            double sum = 0;
-                            for(Node node : this.getLayer(k-1).getNodes()) sum += node.getEdge(l).getWeight() * node.getActivation();
-                            sum += current.getBias();
-                            gradientVector[currBiasIndex--] += Calculator.biasPartialDiff(current.getActivation(), sum, k == this.layerCount-1 ? expected[l] : this.getLayer(k+1).getNode(l).getActivation());
-                        }
-                    }
-                    Layer next = this.getLayer(k+1);
-                    Layer previous = this.getLayer(k-1);
-                }
-
-
-            }
-        }
-
-        for(int i=0; i<gradientVector.length; i++)
-            gradientVector[i] /= totalCases;
-        this.updateParameters(gradientVector);
-    }
-
-    public void updateParameters(double[] gradient) {
+    public void updateParameters(double[] gradient) throws IOException {
         ParamManager params = this.params;
-        System.out.println(Arrays.toString(params.getParameters()));
-        for(int i=0; i<gradient.length; i++) params.getParameters()[i] += gradient[i];
-        System.out.println(Arrays.toString(params.getParameters()));
+        for(int i=0; i<gradient.length; i++) params.getParameters()[i] -= gradient[i];
+        this.getParamManager().updateTrainingData();
     }
 
 }

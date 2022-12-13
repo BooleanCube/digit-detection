@@ -5,10 +5,12 @@ public class Edge {
     private Node startNode;
     private Node endNode;
     private double weight;
+    private int paramIndex;
 
-    public Edge(Node startNode, Node endNode, double weight) {
+    public Edge(Node startNode, Node endNode, int paramIndex, double weight) {
         this.startNode = startNode;
         this.endNode = endNode;
+        this.paramIndex = paramIndex;
         this.weight = weight;
     }
 
@@ -34,6 +36,18 @@ public class Edge {
 
     public void setWeight(double weight) {
         this.weight = weight;
+    }
+
+    public int getParamIndex() {
+        return paramIndex;
+    }
+
+    public void setParamIndex(int paramIndex) {
+        this.paramIndex = paramIndex;
+    }
+
+    public String toString() {
+        return this.startNode + " -> " + this.endNode + "(" + this.weight + ")";
     }
 
 }
