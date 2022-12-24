@@ -116,7 +116,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
             Home home = new Home();
         } else if(command.startsWith("train")) {
             try {
-                NetworkManager.miniBatchTraining(200, 10);
+                NetworkManager.parallelBatchTraining(500, 1, 0.01);
             } catch (IOException | ParseException e) {
                 throw new RuntimeException(e);
             }
