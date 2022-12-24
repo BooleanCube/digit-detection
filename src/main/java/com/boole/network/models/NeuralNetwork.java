@@ -1,6 +1,6 @@
 package com.boole.network.models;
 
-import com.boole.Calculator;
+import com.boole.math.Calculator;
 import com.boole.Constant;
 import com.boole.network.NetworkManager;
 import com.boole.network.ParamManager;
@@ -8,8 +8,6 @@ import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
 
 public class NeuralNetwork {
 
@@ -83,13 +81,13 @@ public class NeuralNetwork {
     }
 
     public double calculateAverageCost() throws IOException, ParseException {
-        int amt = Constant.testingData.length;
+        int amt = Constant.testingData.size();
         double averageCost = 0;
         for(int i=0; i<amt; i++) {
-            File data = Constant.testingData[i];
-            Node[] output = NetworkManager.detectDigit(data);
+            double[] data = Constant.testingData.get(i);
+            Node[] output = NetworkManager.feedForward(data);
             double[] exact = new double[output.length];
-            exact[Integer.parseInt(data.getName().split("_")[0])] = 1.0;
+            exact[Constant.getSampleLabel(data)] = 1d;
             averageCost += Calculator.calculateCost(output, exact);
         }
         averageCost /= amt;
@@ -101,23 +99,45 @@ public class NeuralNetwork {
         double averageCost = 0;
         double successful = 0;
         for(int i=0; i<amt; i++) {
-            File data = Constant.testingData[i*9];
-            Node[] output = NetworkManager.detectDigit(data);
+            double[] data = Constant.testingData.get(i*9);
+            Node[] output = NetworkManager.feedForward(data);
             double[] exact = new double[output.length];
-            int answer = Integer.parseInt(data.getName().split("_")[0]);
+            int label = Constant.getSampleLabel(data);
             int guess = Calculator.findMaximumActivation(output);
-            if(answer==guess) successful++;
-            exact[answer] = 1.0;
+            if(label == guess) successful++;
+            exact[label] = 1.0;
             averageCost += Calculator.calculateCost(output, exact);
         }
         averageCost /= amt;
         return new double[]{successful, amt, averageCost};
     }
 
-    public void updateParameters(double[] gradient) throws IOException {
+    public void updateParameters(double[] gradient) {
         ParamManager params = this.params;
-        for(int i=0; i<gradient.length; i++) params.getParameters()[i] += gradient[i];
-        this.getParamManager().updateTrainingData();
+        for(int i=0; i<gradient.length; i++)
+            params.getParameters()[i] += gradient[i];
+    }
+
+    public void updateParameters(double[] gradient, int size) {
+        ParamManager params = this.params;
+        for(int i=0; i<gradient.length; i++)
+            params.getParameters()[i] += gradient[i]/size;
+    }
+
+    public Node[] getInputNodes() {
+        return this.getLayer(0).getNodes();
+    }
+
+    public int getInputCount() {
+        return this.getInputNodes().length;
+    }
+
+    public Node[] getOutputNodes() {
+        return this.getLayer(this.getLayerCount()-1).getNodes();
+    }
+
+    public int getOutputCount() {
+        return this.getOutputNodes().length;
     }
 
 }
