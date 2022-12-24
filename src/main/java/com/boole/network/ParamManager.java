@@ -70,6 +70,7 @@ public class ParamManager {
         for(int i=0; i<paramCount; i++) {
             Random generator = new Random();
             double random = minBound + (maxBound-minBound) * generator.nextDouble();
+            parameters[i] = random;
             jsonData.add(i, random);
         }
         json.put("params", jsonData);
