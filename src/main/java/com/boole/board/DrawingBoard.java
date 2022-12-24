@@ -124,10 +124,9 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
             this.window.setVisible(false);
             this.window.dispose();
 
-            try {
-                Node[] output = NetworkManager.detectDigit(image);
-                OutputDisplay display = new OutputDisplay(output);
-            } catch (IOException | ParseException e) { throw new RuntimeException(e); }
+            double[] data = Constant.parseImageFile(image);
+            Node[] output = NetworkManager.feedForward(data);
+            OutputDisplay display = new OutputDisplay(output);
         }
     }
 

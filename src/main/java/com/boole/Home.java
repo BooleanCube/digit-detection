@@ -9,12 +9,40 @@ import org.json.simple.parser.ParseException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Home extends JPanel implements ActionListener {
 
     private final JFrame window;
     private final Graphics2D graphics;
+
+    static {
+        try (Stream<Path> trainingPaths = Files.walk(Paths.get("samples/training/"))) {
+            Constant.trainingData = (ArrayList<double[]>) trainingPaths
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .map(Constant::parseImageFile)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try (Stream<Path> testingPaths = Files.walk(Paths.get("samples/testing/"))) {
+            Constant.testingData = (ArrayList<double[]>) testingPaths
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .map(Constant::parseImageFile)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(String[] args) throws IOException, ParseException {
         NetworkManager.init();
