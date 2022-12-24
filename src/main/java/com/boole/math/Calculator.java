@@ -1,4 +1,4 @@
-package com.boole;
+package com.boole.math;
 
 import com.boole.network.models.Node;
 
@@ -23,7 +23,8 @@ import com.boole.network.models.Node;
  */
 public class Calculator {
 
-    public static final double learnRate = 0.01;
+    public static final double biasLearnRate = 0.0001;
+    public static final double weightLearnRate = 0.001;
 
     private final static double sigmoidStretch = 1;
 
@@ -34,8 +35,18 @@ public class Calculator {
 
     // σ(x)(1-σ(x))
     // https://towardsdatascience.com/derivative-of-the-sigmoid-function-536880cf918e
-    public static double sigmoidPrime(double x) {
+    public static double sigmoidDerivative(double x) {
         return sigmoid(x)*(1-sigmoid(x));
+    }
+
+    /**
+     * Calculates the derivative of the sigmoid function.
+     *
+     * @param x a double representing the input to the sigmoid function
+     * @return the derivative of the sigmoid function applied to x
+     */
+    public static double sigmoidPrime(double x) {
+        return x * (1 - x);
     }
 
     public static double calculateCost(Node[] output, double[] exact) {
