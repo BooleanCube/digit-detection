@@ -50,7 +50,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
         chooseText.setBounds(88, 26, 800, 200);
 
         JButton trainButton = new JButton();
-        trainButton.setText(centerFormatText("Train the neural network with randomly generated mini-batches (500-600 samples)"));
+        trainButton.setText(centerFormatText("Train the neural network with randomly shuffled training data (5 epochs)"));
         trainButton.setFont(style.normalFont);
         trainButton.setName("train");
         trainButton.setFocusable(false);
