@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MnistParser {
 
@@ -17,6 +19,24 @@ public class MnistParser {
         mnistMatrix = new MnistDataReader().readData("samples/data/t10k-images.idx3-ubyte", "samples/data/t10k-labels.idx1-ubyte");
         parseMnistData(mnistMatrix, "samples/testing/");
         printMnistMatrix(mnistMatrix[0]);
+    }
+
+    public static ArrayList<double[]> parseMnistData(MnistMatrix[] mnistData) throws IOException {
+        ArrayList<double[]> data = new ArrayList<>();
+        for(MnistMatrix matrix : mnistData) {
+            int size = matrix.getNumberOfColumns() * matrix.getNumberOfRows();
+            double[] matrixData = new double[size + 1];
+            for(int r=0; r<matrix.getNumberOfRows(); r++ ) {
+                for(int c=0; c<matrix.getNumberOfColumns(); c++) {
+                    int rgb = matrix.getValue(r, c);
+                    matrixData[r*matrix.getNumberOfRows()+c] = rgb/255.0;
+                }
+            }
+            int label = matrix.getLabel();
+            matrixData[size] = label;
+            data.add(matrixData);
+        }
+        return data;
     }
 
     private static void parseMnistData(MnistMatrix[] data, String outputPath) throws IOException {

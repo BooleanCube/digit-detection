@@ -8,6 +8,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.DoubleAdder;
 
 public class NeuralNetwork {
 
@@ -122,6 +123,12 @@ public class NeuralNetwork {
         ParamManager params = this.params;
         for(int i=0; i<gradient.length; i++)
             params.getParameters()[i] += gradient[i]/size;
+    }
+
+    public void updateParameters(DoubleAdder[] gradient, int size) {
+        ParamManager params = this.params;
+        for(int i=0; i<gradient.length; i++)
+            params.getParameters()[i] += gradient[i].doubleValue()/size;
     }
 
     public Node[] getInputNodes() {

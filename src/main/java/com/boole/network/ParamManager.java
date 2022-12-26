@@ -41,6 +41,10 @@ public class ParamManager {
         return this.parameters[idx];
     }
 
+    public void updateParam(int idx, double value) {
+        this.parameters[idx] += value;
+    }
+
     public ParamManager(NeuralNetwork network) throws IOException, ParseException {
         for(int i=1; i<network.getLayerCount(); i++) {
             Layer layer = network.getLayer(i);
@@ -62,7 +66,7 @@ public class ParamManager {
     }
 
     public void resetTrainingData() throws IOException {
-        final int maxBound = 3;
+        final int maxBound = 2;
         final int minBound = -maxBound;
 
         JSONObject json = new JSONObject();

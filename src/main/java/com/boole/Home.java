@@ -1,6 +1,9 @@
 package com.boole;
 
 import com.boole.board.DrawingBoard;
+import com.boole.mnist.MnistDataReader;
+import com.boole.mnist.MnistMatrix;
+import com.boole.mnist.MnistParser;
 import com.boole.network.NetworkManager;
 import com.boole.statistics.TestingDisplay;
 import com.boole.training.TrainingMenu;
@@ -25,20 +28,14 @@ public class Home extends JPanel implements ActionListener {
 
     static {
         try (Stream<Path> trainingPaths = Files.walk(Paths.get("samples/training/"))) {
-            Constant.trainingData = (ArrayList<double[]>) trainingPaths
-                    .filter(Files::isRegularFile)
-                    .map(Path::toFile)
-                    .map(Constant::parseImageFile)
-                    .collect(Collectors.toList());
+            MnistMatrix[] mnistMatrix = new MnistDataReader().readData("samples/data/train-images.idx3-ubyte", "samples/data/train-labels.idx1-ubyte");
+            Constant.trainingData = MnistParser.parseMnistData(mnistMatrix);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         try (Stream<Path> testingPaths = Files.walk(Paths.get("samples/testing/"))) {
-            Constant.testingData = (ArrayList<double[]>) testingPaths
-                    .filter(Files::isRegularFile)
-                    .map(Path::toFile)
-                    .map(Constant::parseImageFile)
-                    .collect(Collectors.toList());
+            MnistMatrix[] mnistMatrix = new MnistDataReader().readData("samples/data/t10k-images.idx3-ubyte", "samples/data/t10k-labels.idx1-ubyte");
+            Constant.testingData = MnistParser.parseMnistData(mnistMatrix);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

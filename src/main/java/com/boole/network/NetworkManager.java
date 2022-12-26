@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.DoubleAdder;
 
 public class NetworkManager {
 
@@ -40,6 +41,7 @@ public class NetworkManager {
      * @return an array of output values from the final layer of the network
      */
     public static Node[] feedForward(double[] data) {
+
         if(data.length != network.getInputCount()+1) {
             throw new IllegalArgumentException("The input data must have the same number of elements as the input layer of the network.");
         }
@@ -71,7 +73,6 @@ public class NetworkManager {
 
         return network.getOutputNodes();
     }
-
 
     public static Node[] forwardPropagation(double[] data) throws IOException, ParseException {
         // reset the neural network before implementing forward propagation
@@ -110,12 +111,13 @@ public class NetworkManager {
      */
     public static void parallelBatchTraining(int batchSize, int epochs, double learningRate) throws IOException, ParseException {
         double startTime = System.currentTimeMillis();
-        for (int epoch = 0; epoch < epochs; epoch++) {
+        for(int epoch=0; epoch<epochs; epoch++) {
             // Shuffle the training data
             Collections.shuffle(Constant.trainingData);
 
             // Calculate the gradients for the batch
-            double[] gradients = new double[network.getParamManager().getParamCount()];
+            DoubleAdder[] gradients = new DoubleAdder[network.getParamManager().getParamCount()];
+            for(int i=0; i<gradients.length; i++) gradients[i] = new DoubleAdder();
 
             for(int i=0; i<Constant.trainingData.size(); i+=batchSize) {
                 int end = Math.min(i + batchSize, Constant.trainingData.size());
@@ -133,6 +135,164 @@ public class NetworkManager {
 
                     // Calculate the gradients for the output layer
                     Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                    for(int k=0; k<outputLayer.getNodeCount(); k++) {
+                        Node currentNode = outputLayer.getNode(k);
+                        double delta = currentNode.getActivation() - target[k];
+                        currentNode.setActivation(delta);
+                    }
+
+                    // Calculate the gradients for the hidden layers
+                    for(int k=network.getLayerCount()-2; k>=0; k--) {
+                        Layer prevLayer = network.getLayer(k + 1);
+                        Layer currentLayer = network.getLayer(k);
+
+                        // Calculate the result values for the current layer
+                        double[] result = new double[currentLayer.getNodeCount()];
+                        for(int l=0; l<prevLayer.getNodeCount(); l++) {
+                            Node currentNode = prevLayer.getNode(l);
+                            double activation = currentNode.getActivation();
+                            for(int m=0; m<currentLayer.getNodeCount(); m++) {
+                                Edge weight = currentLayer.getNode(m).getEdge(l);
+                                result[m] += weight.getWeight() * activation;
+                            }
+                        }
+                        for(int l=0; l<result.length; l++) {
+                            // Calculate the derivative of the activation function applied to the activation of the current node
+                            result[l] *= Calculator.sigmoidPrime(currentLayer.getNode(l).getActivation());
+                        }
+
+                        // Update the gradients for the biases and weights
+                        for(int l=0; l<prevLayer.getNodeCount(); l++) {
+                            Node currentNode = prevLayer.getNode(l);
+                            double delta = result[l];
+                            currentNode.setActivation(delta);
+                            int biasIndex = currentNode.getParamIndex();
+                            gradients[biasIndex].add(-learningRate * delta);
+                            for(int m=0; m<currentLayer.getNodeCount(); m++) {
+                                Node hiddenNode = currentLayer.getNode(m);
+                                Edge weight = hiddenNode.getEdge(l);
+                                int weightIndex = weight.getParamIndex();
+                                gradients[weightIndex].add(-learningRate * delta * hiddenNode.getActivation());
+                            }
+                        }
+                    }
+                });
+
+                System.out.println(Arrays.toString(gradients));
+
+                // Update the biases and weights using the gradients
+                network.updateParameters(gradients, currentBatchSize);
+            }
+        }
+
+        network.getParamManager().updateTrainingData();
+
+        double endTime = System.currentTimeMillis();
+        System.out.println("Gradient Descent Training Runtime: " + (endTime - startTime) / 1000.0 + " seconds");
+    }
+
+    /**
+     * Trains a neural network using the parallel training method and the gradient descent algorithm.
+     *
+     * @param epochs an int representing the number of epochs to train the network for
+     * @param learningRate a double representing the learning rate to use for weight updates
+     */
+    public static void parallelDataTraining(int epochs, double learningRate) throws IOException, ParseException {
+        double startTime = System.currentTimeMillis();
+        for (int epoch = 0; epoch < epochs; epoch++) {
+            // Shuffle the training data
+            Collections.shuffle(Constant.trainingData);
+
+            // Use parallel stream to process mini-batches in parallel
+            Constant.trainingData.parallelStream().forEach(data -> {
+                // Feed forward through the network
+                Node[] output = feedForward(data);
+
+                // Calculate the target values for the output layer
+                double[] target = new double[output.length];
+                target[Constant.getSampleLabel(data)] = 1d;
+
+                // Calculate the gradients for the output layer
+                Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                for (int k = 0; k < outputLayer.getNodeCount(); k++) {
+                    Node currentNode = outputLayer.getNode(k);
+                    double delta = currentNode.getActivation() - target[k];
+                    currentNode.setActivation(delta);
+                }
+
+                // Calculate the gradients for the hidden layers
+                for (int k = network.getLayerCount() - 2; k >= 0; k--) {
+                    Layer prevLayer = network.getLayer(k + 1);
+                    Layer currentLayer = network.getLayer(k);
+
+                    // Calculate the result values for the current layer
+                    double[] result = new double[currentLayer.getNodeCount()];
+                    for (int l = 0; l < prevLayer.getNodeCount(); l++) {
+                        Node currentNode = prevLayer.getNode(l);
+                        double activation = currentNode.getActivation();
+                        for (int m = 0; m < currentLayer.getNodeCount(); m++) {
+                            Edge weight = currentLayer.getNode(m).getEdge(l);
+                            result[m] += weight.getWeight() * activation;
+                        }
+                    }
+                    for (int l = 0; l < result.length; l++) {
+                        // Calculate the derivative of the activation function applied to the activation of the current node
+                        result[l] *= Calculator.sigmoidPrime(currentLayer.getNode(l).getActivation());
+                    }
+
+                    // Update the gradients for the biases and weights
+                    for (int l = 0; l < prevLayer.getNodeCount(); l++) {
+                        Node currentNode = prevLayer.getNode(l);
+                        double delta = result[l];
+                        currentNode.setActivation(delta);
+                        int biasIndex = currentNode.getParamIndex();
+                        network.getParamManager().updateParam(biasIndex, -learningRate * delta);
+                        for (int m = 0; m < currentLayer.getNodeCount(); m++) {
+                            Node hiddenNode = currentLayer.getNode(m);
+                            int weightIndex = hiddenNode.getEdge(l).getParamIndex();
+                            double gradient = delta * hiddenNode.getActivation();
+                            network.getParamManager().updateParam(weightIndex, -learningRate * gradient);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update parameter database from the training data
+        network.getParamManager().updateTrainingData();
+
+        double endTime = System.currentTimeMillis();
+        System.out.println("Training time: " + (endTime - startTime) / 1000 + "s");
+    }
+
+    /**
+     * Trains a neural network using the mini-batch training method and the gradient descent algorithm.
+     *
+     * @param batchSize an int representing the size of each mini-batch
+     * @param epochs an int representing the number of epochs to train the network for
+     * @param learningRate a double representing the learning rate to use for weight updates
+     */
+    public static void miniBatchTrainingOptimized(int batchSize, int epochs, double learningRate) throws IOException, ParseException {
+        double startTime = System.currentTimeMillis();
+        for (int epoch = 0; epoch < epochs; epoch++) {
+            // Shuffle the training data
+            Collections.shuffle(Constant.trainingData);
+
+            for (int i = 0; i < Constant.trainingData.size(); i += batchSize) {
+                int end = Math.min(i + batchSize, Constant.trainingData.size());
+                int currentBatchSize = end - i;
+
+                // Calculate the gradients for the batch
+                double[] gradients = new double[network.getParamManager().getParamCount()];
+                for (int j = 0; j < currentBatchSize; j++) {
+                    // Feed forward through the network
+                    double[] data = Constant.trainingData.get(i + j);
+                    Node[] output = feedForward(data);
+                    double[] target = new double[output.length];
+                    target[Constant.getSampleLabel(data)] = 1d;
+
+                    // Calculate the error for the output layer
+                    Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
                     for (int k = 0; k < outputLayer.getNodeCount(); k++) {
                         Node currentNode = outputLayer.getNode(k);
                         double delta = currentNode.getActivation() - target[k];
@@ -144,7 +304,6 @@ public class NetworkManager {
                         Layer prevLayer = network.getLayer(k + 1);
                         Layer currentLayer = network.getLayer(k);
 
-                        // Calculate the result values for the current layer
                         double[] result = new double[currentLayer.getNodeCount()];
                         for (int l = 0; l < prevLayer.getNodeCount(); l++) {
                             Node currentNode = prevLayer.getNode(l);
@@ -174,18 +333,99 @@ public class NetworkManager {
                             }
                         }
                     }
-                });
 
-                // Update the biases and weights using the gradients
-                network.updateParameters(gradients, currentBatchSize);
+                    // Update the weights and biases using the gradients for the batch
+                    for(int k=0; k<gradients.length; k++) {
+                        double gradient = gradients[j] / currentBatchSize;
+                        network.getParamManager().updateParam(j, -learningRate * gradient);
+                    }
+                }
             }
-        }
 
-        network.getParamManager().updateTrainingData();
-        double endTime = System.currentTimeMillis();
-        System.out.println("Gradient Descent Training Runtime: " + (endTime - startTime) / 1000.0 + " seconds");
+            // Update parameter database from the training data
+            network.getParamManager().updateTrainingData();
+
+            // Calculate the elapsed time
+            double elapsedTime = System.currentTimeMillis() - startTime;
+            System.out.println("Epoch " + epoch + " completed in " + elapsedTime + " milliseconds");
+        }
     }
 
+    /**
+     * Trains a neural network using the stochastic gradient descent algorithm.
+     *
+     * @param epochs an int representing the number of epochs to train the network for
+     * @param learningRate a double representing the learning rate to use for weight updates
+     */
+    public static void stochasticGradientDescent(int epochs, double learningRate) throws IOException, ParseException {
+        double startTime = System.currentTimeMillis();
+        for(int epoch=0; epoch<epochs; epoch++) {
+            // Shuffle the training data
+            Collections.shuffle(Constant.trainingData);
+
+            for(int i=0; i<Constant.trainingData.size(); i++) {
+                // Get the current training sample
+                double[] data = Constant.trainingData.get(i);
+                Node[] output = feedForward(data);
+                double[] target = new double[output.length];
+                target[Constant.getSampleLabel(data)] = 1d;
+
+                // Calculate the gradients for the sample
+                double[] gradients = new double[network.getParamManager().getParamCount()];
+                // Calculate the error for the output layer
+                Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                for(int k=0; k<outputLayer.getNodeCount(); k++) {
+                    Node currentNode = outputLayer.getNode(k);
+                    double delta = currentNode.getActivation() - target[k];
+                    currentNode.setActivation(delta);
+                }
+                // Calculate the gradients for the hidden layers
+                for(int k=network.getLayerCount()-2; k>=0; k--) {
+                    Layer prevLayer = network.getLayer(k + 1);
+                    Layer currentLayer = network.getLayer(k);
+
+                    double[] result = new double[currentLayer.getNodeCount()];
+                    for(int l=0; l<prevLayer.getNodeCount(); l++) {
+                        Node currentNode = prevLayer.getNode(l);
+                        double activation = currentNode.getActivation();
+                        for(int m=0; m<currentLayer.getNodeCount(); m++) {
+                            Edge weight = currentLayer.getNode(m).getEdge(l);
+                            result[m] += weight.getWeight() * activation;
+                        }
+                    }
+                    for(int l=0; l<result.length; l++) {
+                        // Calculate the derivative of the activation function applied to the activation of the current node
+                        result[l] *= Calculator.sigmoidPrime(currentLayer.getNode(l).getActivation());
+                    }
+
+                    // Update the gradients for the biases and weights
+                    for(int l=0; l<prevLayer.getNodeCount(); l++) {
+                        Node currentNode = prevLayer.getNode(l);
+                        double delta = result[l];
+                        currentNode.setActivation(delta);
+                        int biasIndex = currentNode.getParamIndex();
+                        gradients[biasIndex] += -learningRate * delta;
+                        for (int m = 0; m < currentLayer.getNodeCount(); m++) {
+                            Node hiddenNode = currentLayer.getNode(m);
+                            Edge weight = hiddenNode.getEdge(l);
+                            int weightIndex = weight.getParamIndex();
+                            gradients[weightIndex] += -learningRate * delta * hiddenNode.getActivation();
+                        }
+                    }
+                }
+
+                // Update the weights and biases using the gradients
+                network.updateParameters(gradients);
+            }
+
+            // Update parameter database from the training data
+            network.getParamManager().updateTrainingData();
+
+            double endTime = System.currentTimeMillis();
+            System.out.println("Time taken for epoch " + (epoch + 1) + ": " + (endTime - startTime)/1000.0 + " seconds");
+            startTime = endTime;
+        }
+    }
 
     /**
      * Trains a neural network using the mini-batch training method and the gradient descent algorithm.
@@ -262,9 +502,11 @@ public class NetworkManager {
             }
         }
 
+        // Update parameter database from the training data
         network.getParamManager().updateTrainingData();
+
         double endTime = System.currentTimeMillis();
-        System.out.println("Gradient Descent Training Runtime: " + (endTime - startTime) / 1000.0 + " seconds");
+        System.out.println("Gradient Descent Mini-Batch Training Runtime: " + (endTime - startTime) / 1000.0 + " seconds");
     }
 
     /**
@@ -340,8 +582,10 @@ public class NetworkManager {
             }
         }
 
-        System.out.println(Arrays.toString(gradientVector));
         network.updateParameters(gradientVector);
+
+        // Update parameter database from the training data
+        network.getParamManager().updateTrainingData();
     }
 
     /**

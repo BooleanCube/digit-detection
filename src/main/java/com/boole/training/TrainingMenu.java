@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.AffineTransformOp;
 import java.io.IOException;
 
 public class TrainingMenu extends JPanel implements ActionListener {
@@ -116,7 +117,11 @@ public class TrainingMenu extends JPanel implements ActionListener {
             Home home = new Home();
         } else if(command.startsWith("train")) {
             try {
-                NetworkManager.parallelBatchTraining(500, 1, 0.01);
+                // NetworkManager.miniBatchTraining(500, 5, 0.001);
+                // NetworkManager.miniBatchTrainingOptimized(500, 5, 0.001);
+                // NetworkManager.parallelBatchTraining(500, 5, 0.001);
+                // NetworkManager.parallelDataTraining(5, 0.001);
+                NetworkManager.stochasticGradientDescent(5, 0.001);
             } catch (IOException | ParseException e) {
                 throw new RuntimeException(e);
             }
