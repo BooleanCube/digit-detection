@@ -8,6 +8,7 @@ import com.boole.network.NetworkManager;
 import com.boole.statistics.TestingDisplay;
 import com.boole.training.TrainingMenu;
 import org.json.simple.parser.ParseException;
+import org.opencv.core.Core;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,6 +43,7 @@ public class Home extends JPanel implements ActionListener {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
+//        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         NetworkManager.init();
         new Home();
     }
@@ -135,15 +137,19 @@ public class Home extends JPanel implements ActionListener {
             // create and open drawing board
             DrawingBoard board = new DrawingBoard();
         } else if(command.startsWith("run")) {
-            try {
-                // run all tests to measure the neural network
-                double[] results = NetworkManager.getNetwork().runTests();
-                this.closeWindow();
-                // create and open statistics display window
-                TestingDisplay display = new TestingDisplay(results);
-            } catch (IOException | ParseException e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                // run all tests to measure the neural network
+//                 double[] results = NetworkManager.getNetwork().runTests();
+//                this.closeWindow();
+//                // create and open statistics display window
+//                TestingDisplay display = new TestingDisplay(results);
+//            } catch (IOException | ParseException e) {
+//                throw new RuntimeException(e);
+//            }
+            String results = NetworkManager.network.testNetwork();
+            this.closeWindow();
+            // create and open statistics display window
+            TestingDisplay display = new TestingDisplay(results);
         }
 
     }

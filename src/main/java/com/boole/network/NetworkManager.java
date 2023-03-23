@@ -6,7 +6,6 @@ import com.boole.network.models.*;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,23 +14,27 @@ import java.util.concurrent.atomic.DoubleAdder;
 
 public class NetworkManager {
 
-    private static NeuralNetwork network;
+    private static NeuralNetwork network2;
+    public static MultiLayerModel network;
 
     public static NeuralNetwork getNetwork() {
-        return network;
+        return network2;
     }
 
     public static void init() throws IOException, ParseException {
         // setup neural network model
-        network = new NeuralNetwork(4);
-        network.setLayers(
+        network2 = new NeuralNetwork(4);
+        network2.setLayers(
                 new Layer(LayerType.BASE, new Node[Constant.imageSize*Constant.imageSize]),
                 new Layer(LayerType.HIDDEN, new Node[32]),
                 new Layer(LayerType.HIDDEN, new Node[16]),
                 new Layer(LayerType.OUTPUT, new Node[10])
         );
-        network.setParams();
-        network.setupLayers();
+        network2.setParams();
+        network2.setupLayers();
+
+        network = new MultiLayerModel();
+        network.init();
     }
 
     /**
@@ -42,20 +45,20 @@ public class NetworkManager {
      */
     public static Node[] feedForward(double[] data) {
 
-        if(data.length != network.getInputCount()+1) {
+        if(data.length != network2.getInputCount()+1) {
             throw new IllegalArgumentException("The input data must have the same number of elements as the input layer of the network.");
         }
 
-        double[] parameters = network.getParamManager().getParameters();
+        double[] parameters = network2.getParamManager().getParameters();
 
-        Node[] input = network.getInputNodes();
+        Node[] input = network2.getInputNodes();
         for(int i=0; i<data.length-1; i++) {
             input[i].setActivation(data[i]);
         }
 
-        for(int i=1; i<network.getLayerCount(); i++) {
-            Layer prevLayer = network.getLayer(i-1);
-            Layer currentLayer = network.getLayer(i);
+        for(int i = 1; i< network2.getLayerCount(); i++) {
+            Layer prevLayer = network2.getLayer(i-1);
+            Layer currentLayer = network2.getLayer(i);
 
             for(int j=0; j<currentLayer.getNodeCount(); j++) {
                 Node currentNode = currentLayer.getNode(j);
@@ -71,7 +74,7 @@ public class NetworkManager {
             }
         }
 
-        return network.getOutputNodes();
+        return network2.getOutputNodes();
     }
 
     public static Node[] forwardPropagation(double[] data) throws IOException, ParseException {
@@ -79,14 +82,14 @@ public class NetworkManager {
         init();
 
         // initialize activation values for the first base layer of the neural network
-        Layer baseLayer = network.getLayer(0);
+        Layer baseLayer = network2.getLayer(0);
         for(int i=0; i<baseLayer.getNodeCount(); i++)
             baseLayer.getNode(i).setActivation(data[i]);
 
         // calculate activations for all nodes in all layers
-        for(int i=1; i<network.getLayerCount(); i++) {
-            Layer previousLayer = network.getLayer(i-1);
-            Layer currentLayer = network.getLayer(i);
+        for(int i = 1; i< network2.getLayerCount(); i++) {
+            Layer previousLayer = network2.getLayer(i-1);
+            Layer currentLayer = network2.getLayer(i);
             for(int j=0; j<currentLayer.getNodeCount(); j++) {
                 double activation = 0;
                 for(int k=0; k<previousLayer.getNodeCount(); k++) {
@@ -99,7 +102,7 @@ public class NetworkManager {
             }
         }
 
-        return network.getLayer(3).getNodes();
+        return network2.getLayer(3).getNodes();
     }
 
     /**
@@ -116,7 +119,7 @@ public class NetworkManager {
             Collections.shuffle(Constant.trainingData);
 
             // Calculate the gradients for the batch
-            DoubleAdder[] gradients = new DoubleAdder[network.getParamManager().getParamCount()];
+            DoubleAdder[] gradients = new DoubleAdder[network2.getParamManager().getParamCount()];
             for(int i=0; i<gradients.length; i++) gradients[i] = new DoubleAdder();
 
             for(int i=0; i<Constant.trainingData.size(); i+=batchSize) {
@@ -134,7 +137,7 @@ public class NetworkManager {
                     target[Constant.getSampleLabel(data)] = 1d;
 
                     // Calculate the gradients for the output layer
-                    Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                    Layer outputLayer = network2.getLayer(network2.getLayerCount() - 1);
                     for(int k=0; k<outputLayer.getNodeCount(); k++) {
                         Node currentNode = outputLayer.getNode(k);
                         double delta = currentNode.getActivation() - target[k];
@@ -142,9 +145,9 @@ public class NetworkManager {
                     }
 
                     // Calculate the gradients for the hidden layers
-                    for(int k=network.getLayerCount()-2; k>=0; k--) {
-                        Layer prevLayer = network.getLayer(k + 1);
-                        Layer currentLayer = network.getLayer(k);
+                    for(int k = network2.getLayerCount()-2; k>=0; k--) {
+                        Layer prevLayer = network2.getLayer(k + 1);
+                        Layer currentLayer = network2.getLayer(k);
 
                         // Calculate the result values for the current layer
                         double[] result = new double[currentLayer.getNodeCount()];
@@ -181,11 +184,11 @@ public class NetworkManager {
                 System.out.println(Arrays.toString(gradients));
 
                 // Update the biases and weights using the gradients
-                network.updateParameters(gradients, currentBatchSize);
+                network2.updateParameters(gradients, currentBatchSize);
             }
         }
 
-        network.getParamManager().updateTrainingData();
+        network2.getParamManager().updateTrainingData();
 
         double endTime = System.currentTimeMillis();
         System.out.println("Gradient Descent Training Runtime: " + (endTime - startTime) / 1000.0 + " seconds");
@@ -213,7 +216,7 @@ public class NetworkManager {
                 target[Constant.getSampleLabel(data)] = 1d;
 
                 // Calculate the gradients for the output layer
-                Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                Layer outputLayer = network2.getLayer(network2.getLayerCount() - 1);
                 for (int k = 0; k < outputLayer.getNodeCount(); k++) {
                     Node currentNode = outputLayer.getNode(k);
                     double delta = currentNode.getActivation() - target[k];
@@ -221,9 +224,9 @@ public class NetworkManager {
                 }
 
                 // Calculate the gradients for the hidden layers
-                for (int k = network.getLayerCount() - 2; k >= 0; k--) {
-                    Layer prevLayer = network.getLayer(k + 1);
-                    Layer currentLayer = network.getLayer(k);
+                for (int k = network2.getLayerCount() - 2; k >= 0; k--) {
+                    Layer prevLayer = network2.getLayer(k + 1);
+                    Layer currentLayer = network2.getLayer(k);
 
                     // Calculate the result values for the current layer
                     double[] result = new double[currentLayer.getNodeCount()];
@@ -246,12 +249,12 @@ public class NetworkManager {
                         double delta = result[l];
                         currentNode.setActivation(delta);
                         int biasIndex = currentNode.getParamIndex();
-                        network.getParamManager().updateParam(biasIndex, -learningRate * delta);
+                        network2.getParamManager().updateParam(biasIndex, -learningRate * delta);
                         for (int m = 0; m < currentLayer.getNodeCount(); m++) {
                             Node hiddenNode = currentLayer.getNode(m);
                             int weightIndex = hiddenNode.getEdge(l).getParamIndex();
                             double gradient = delta * hiddenNode.getActivation();
-                            network.getParamManager().updateParam(weightIndex, -learningRate * gradient);
+                            network2.getParamManager().updateParam(weightIndex, -learningRate * gradient);
                         }
                     }
                 }
@@ -259,7 +262,7 @@ public class NetworkManager {
         }
 
         // Update parameter database from the training data
-        network.getParamManager().updateTrainingData();
+        network2.getParamManager().updateTrainingData();
 
         double endTime = System.currentTimeMillis();
         System.out.println("Training time: " + (endTime - startTime) / 1000 + "s");
@@ -283,7 +286,7 @@ public class NetworkManager {
                 int currentBatchSize = end - i;
 
                 // Calculate the gradients for the batch
-                double[] gradients = new double[network.getParamManager().getParamCount()];
+                double[] gradients = new double[network2.getParamManager().getParamCount()];
                 for (int j = 0; j < currentBatchSize; j++) {
                     // Feed forward through the network
                     double[] data = Constant.trainingData.get(i + j);
@@ -292,7 +295,7 @@ public class NetworkManager {
                     target[Constant.getSampleLabel(data)] = 1d;
 
                     // Calculate the error for the output layer
-                    Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                    Layer outputLayer = network2.getLayer(network2.getLayerCount() - 1);
                     for (int k = 0; k < outputLayer.getNodeCount(); k++) {
                         Node currentNode = outputLayer.getNode(k);
                         double delta = currentNode.getActivation() - target[k];
@@ -300,9 +303,9 @@ public class NetworkManager {
                     }
 
                     // Calculate the gradients for the hidden layers
-                    for (int k = network.getLayerCount() - 2; k >= 0; k--) {
-                        Layer prevLayer = network.getLayer(k + 1);
-                        Layer currentLayer = network.getLayer(k);
+                    for (int k = network2.getLayerCount() - 2; k >= 0; k--) {
+                        Layer prevLayer = network2.getLayer(k + 1);
+                        Layer currentLayer = network2.getLayer(k);
 
                         double[] result = new double[currentLayer.getNodeCount()];
                         for (int l = 0; l < prevLayer.getNodeCount(); l++) {
@@ -337,13 +340,13 @@ public class NetworkManager {
                     // Update the weights and biases using the gradients for the batch
                     for(int k=0; k<gradients.length; k++) {
                         double gradient = gradients[j] / currentBatchSize;
-                        network.getParamManager().updateParam(j, -learningRate * gradient);
+                        network2.getParamManager().updateParam(j, -learningRate * gradient);
                     }
                 }
             }
 
             // Update parameter database from the training data
-            network.getParamManager().updateTrainingData();
+            network2.getParamManager().updateTrainingData();
 
             // Calculate the elapsed time
             double elapsedTime = System.currentTimeMillis() - startTime;
@@ -371,18 +374,18 @@ public class NetworkManager {
                 target[Constant.getSampleLabel(data)] = 1d;
 
                 // Calculate the gradients for the sample
-                double[] gradients = new double[network.getParamManager().getParamCount()];
+                double[] gradients = new double[network2.getParamManager().getParamCount()];
                 // Calculate the error for the output layer
-                Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                Layer outputLayer = network2.getLayer(network2.getLayerCount() - 1);
                 for(int k=0; k<outputLayer.getNodeCount(); k++) {
                     Node currentNode = outputLayer.getNode(k);
                     double delta = currentNode.getActivation() - target[k];
                     currentNode.setActivation(delta);
                 }
                 // Calculate the gradients for the hidden layers
-                for(int k=network.getLayerCount()-2; k>=0; k--) {
-                    Layer prevLayer = network.getLayer(k + 1);
-                    Layer currentLayer = network.getLayer(k);
+                for(int k = network2.getLayerCount()-2; k>=0; k--) {
+                    Layer prevLayer = network2.getLayer(k + 1);
+                    Layer currentLayer = network2.getLayer(k);
 
                     double[] result = new double[currentLayer.getNodeCount()];
                     for(int l=0; l<prevLayer.getNodeCount(); l++) {
@@ -415,11 +418,11 @@ public class NetworkManager {
                 }
 
                 // Update the weights and biases using the gradients
-                network.updateParameters(gradients);
+                network2.updateParameters(gradients);
             }
 
             // Update parameter database from the training data
-            network.getParamManager().updateTrainingData();
+            network2.getParamManager().updateTrainingData();
 
             double endTime = System.currentTimeMillis();
             System.out.println("Time taken for epoch " + (epoch + 1) + ": " + (endTime - startTime)/1000.0 + " seconds");
@@ -445,7 +448,7 @@ public class NetworkManager {
                 int currentBatchSize = end - i;
 
                 // Calculate the gradients for the batch
-                double[] gradients = new double[network.getParamManager().getParamCount()];
+                double[] gradients = new double[network2.getParamManager().getParamCount()];
                 for(int j=0; j<currentBatchSize; j++) {
                     // Feed forward through the network
                     double[] data = Constant.trainingData.get(i+j);
@@ -454,7 +457,7 @@ public class NetworkManager {
                     target[Constant.getSampleLabel(data)] = 1d;
 
                     // Calculate the error for the output layer
-                    Layer outputLayer = network.getLayer(network.getLayerCount() - 1);
+                    Layer outputLayer = network2.getLayer(network2.getLayerCount() - 1);
                     for(int k=0; k<outputLayer.getNodeCount(); k++) {
                         Node currentNode = outputLayer.getNode(k);
                         double delta = currentNode.getActivation() - target[k];
@@ -462,9 +465,9 @@ public class NetworkManager {
                     }
 
                     // Calculate the gradients for the hidden layers
-                    for(int k=network.getLayerCount()-2; k>=0; k--) {
-                        Layer prevLayer = network.getLayer(k + 1);
-                        Layer currentLayer = network.getLayer(k);
+                    for(int k = network2.getLayerCount()-2; k>=0; k--) {
+                        Layer prevLayer = network2.getLayer(k + 1);
+                        Layer currentLayer = network2.getLayer(k);
 
                         double[] result = new double[currentLayer.getNodeCount()];
                         for(int l=0; l<prevLayer.getNodeCount(); l++) {
@@ -498,12 +501,12 @@ public class NetworkManager {
                 }
 
                 // Update the biases and weights using the gradients
-                network.updateParameters(gradients);
+                network2.updateParameters(gradients);
             }
         }
 
         // Update parameter database from the training data
-        network.getParamManager().updateTrainingData();
+        network2.getParamManager().updateTrainingData();
 
         double endTime = System.currentTimeMillis();
         System.out.println("Gradient Descent Mini-Batch Training Runtime: " + (endTime - startTime) / 1000.0 + " seconds");
@@ -513,7 +516,7 @@ public class NetworkManager {
      * Gradient Descent with mini-batch samples for training.
      */
     public static void miniBatchTraining(int batchSize) throws IOException, ParseException {
-        double[] gradientVector = new double[network.getParamManager().getParamCount()];
+        double[] gradientVector = new double[network2.getParamManager().getParamCount()];
 
         int epochs = 1; //Constant.trainingData.length/(int)(baseAmt*4.5);
         for(int epoch=0; epoch<epochs; epoch++) {
@@ -525,30 +528,30 @@ public class NetworkManager {
                 target[Constant.getSampleLabel(data)] = 1;
 
                 // output to hidden layer
-                Layer outputLayer = network.getLayer(network.getLayerCount()-1);
-                Layer hiddenLayer = network.getLayer(network.getLayerCount()-2);
+                Layer outputLayer = network2.getLayer(network2.getLayerCount()-1);
+                Layer hiddenLayer = network2.getLayer(network2.getLayerCount()-2);
                 for(int k=0; k<outputLayer.getNodeCount(); k++) {
                     Node currentNode = outputLayer.getNode(k);
                     double delta = currentNode.getActivation() - target[k];
                     currentNode.setActivation(delta);
                     int biasIndex = currentNode.getParamIndex();
-                    double shiftBias = -Calculator.biasLearnRate * delta;
+                    double shiftBias = -Calculator.learnRate * delta;
                     gradientVector[biasIndex] += shiftBias;
                     for(int l=0; l<hiddenLayer.getNodeCount(); l++) {
                         Node hiddenNode = hiddenLayer.getNode(l);
                         Edge weight = hiddenNode.getEdge(k);
                         int weightIndex = weight.getParamIndex();
 
-                        double shiftWeight = -Calculator.weightLearnRate * delta * hiddenNode.getActivation();
+                        double shiftWeight = -Calculator.learnRate * delta * hiddenNode.getActivation();
 
                         gradientVector[weightIndex] += shiftWeight;
                     }
                 }
 
                 // hidden to hidden/input layers
-                for(int k=network.getLayerCount()-3; k>=0; k--) {
-                    Layer prevLayer = network.getLayer(k+1);
-                    Layer currentLayer = network.getLayer(k);
+                for(int k = network2.getLayerCount()-3; k>=0; k--) {
+                    Layer prevLayer = network2.getLayer(k+1);
+                    Layer currentLayer = network2.getLayer(k);
 
                     double[] result = new double[currentLayer.getNodeCount()];
                     for(int l=0; l<prevLayer.getNodeCount(); l++) {
@@ -566,14 +569,14 @@ public class NetworkManager {
                         double delta = result[l];
                         currentNode.setActivation(delta);
                         int biasIndex = currentNode.getParamIndex();
-                        double shiftBias = -Calculator.biasLearnRate * delta;
+                        double shiftBias = -Calculator.learnRate * delta;
                         gradientVector[biasIndex] += shiftBias;
                         for(int m=0; m<currentLayer.getNodeCount(); m++) {
                             Node hiddenNode = currentLayer.getNode(m);
                             Edge weight = hiddenNode.getEdge(l);
                             int weightIndex = weight.getParamIndex();
 
-                            double shiftWeight = -Calculator.weightLearnRate * delta * hiddenNode.getActivation();
+                            double shiftWeight = -Calculator.learnRate * delta * hiddenNode.getActivation();
 
                             gradientVector[weightIndex] += shiftWeight;
                         }
@@ -582,10 +585,10 @@ public class NetworkManager {
             }
         }
 
-        network.updateParameters(gradientVector);
+        network2.updateParameters(gradientVector);
 
         // Update parameter database from the training data
-        network.getParamManager().updateTrainingData();
+        network2.getParamManager().updateTrainingData();
     }
 
     /**
@@ -594,7 +597,7 @@ public class NetworkManager {
      * (incomplete right now)
      */
     public static void scholasticMiniBatchTraining(int batchSize, int sizeError) throws IOException, ParseException {
-        double[] gradientVector = new double[network.getParamManager().getParamCount()];
+        double[] gradientVector = new double[network2.getParamManager().getParamCount()];
 
         int totalCases = 0;
         int baseAmt = batchSize-sizeError;
@@ -609,35 +612,33 @@ public class NetworkManager {
                 double[] target = new double[output.length];
                 target[Constant.getSampleLabel(data)] = 1;
 
-                int currWeightIndex = network.getParamManager().getWeightCount()-1;
-                int currBiasIndex = network.getParamManager().getParamCount()-1;
-                for(int k=network.getLayerCount()-1; k>=0; k++) {
-                    Layer currentLayer = network.getLayer(k);
-                    if(k < network.getLayerCount() -1) {
-                        Layer next = network.getLayer(k+1);
+                int currWeightIndex = network2.getParamManager().getWeightCount()-1;
+                int currBiasIndex = network2.getParamManager().getParamCount()-1;
+                for(int k = network2.getLayerCount()-1; k>=0; k++) {
+                    Layer currentLayer = network2.getLayer(k);
+                    if(k < network2.getLayerCount() -1) {
+                        Layer next = network2.getLayer(k+1);
 
                     }
                     if(k > 0) {
-                        Layer previous = network.getLayer(k-1);
-                        for(int l=network.getLayer(k).getNodeCount()-1; l>=0; l--) {
-                            Node current = network.getLayer(k).getNode(l);
+                        Layer previous = network2.getLayer(k-1);
+                        for(int l = network2.getLayer(k).getNodeCount()-1; l>=0; l--) {
+                            Node current = network2.getLayer(k).getNode(l);
                             double sum = 0;
-                            for(Node node : network.getLayer(k-1).getNodes()) sum += node.getEdge(l).getWeight() * node.getActivation();
+                            for(Node node : network2.getLayer(k-1).getNodes()) sum += node.getEdge(l).getWeight() * node.getActivation();
                             sum += current.getBias();
-                            gradientVector[currBiasIndex--] += Calculator.biasPartialDiff(current.getActivation(), sum, k == network.getLayerCount() -1 ? target[l] : network.getLayer(k+1).getNode(l).getActivation());
+                            gradientVector[currBiasIndex--] += Calculator.biasPartialDiff(current.getActivation(), sum, k == network2.getLayerCount() -1 ? target[l] : network2.getLayer(k+1).getNode(l).getActivation());
                         }
                     }
-                    Layer next = network.getLayer(k+1);
-                    Layer previous = network.getLayer(k-1);
+                    Layer next = network2.getLayer(k+1);
+                    Layer previous = network2.getLayer(k-1);
                 }
-
-
             }
         }
 
         for(int i=0; i<gradientVector.length; i++)
             gradientVector[i] /= totalCases;
-        network.updateParameters(gradientVector);
+        network2.updateParameters(gradientVector);
     }
 
 }

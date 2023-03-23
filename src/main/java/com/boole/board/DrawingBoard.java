@@ -3,9 +3,13 @@ package com.boole.board;
 import com.boole.Constant;
 import com.boole.Settings;
 import com.boole.network.NetworkManager;
-import com.boole.network.models.Node;
 import com.boole.output.OutputDisplay;
-import org.json.simple.parser.ParseException;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -115,25 +119,51 @@ public class DrawingBoard extends JPanel implements MouseMotionListener, MouseLi
     public void actionPerformed(ActionEvent actionEvent) {
         String command = actionEvent.getActionCommand();
         if(command.equals("submit")) {
-            File image;
+            File imageFile;
             try {
-                image = this.renderImage();
+                imageFile = this.renderImage();
             } catch (IOException e) { throw new RuntimeException(e); }
 
             // shut down window
             this.window.setVisible(false);
             this.window.dispose();
 
-            double[] data = Constant.parseImageFile(image);
-            Node[] output = NetworkManager.feedForward(data);
+            BufferedImage image = null;
+            try {
+                image = ImageIO.read(imageFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // Resize and convert to grayscale
+            Image scaledImage = image.getScaledInstance(28, 28, Image.SCALE_SMOOTH);
+            BufferedImage grayscaleImage = new BufferedImage(28, 28, BufferedImage.TYPE_BYTE_GRAY);
+            Graphics2D g = grayscaleImage.createGraphics();
+            g.drawImage(scaledImage, 0, 0, null);
+            g.dispose();
+
+            // Convert to one-dimensional array
+            double[] data = new double[28*28];
+            int index = 0;
+            for (int i = 0; i < grayscaleImage.getHeight(); i++) {
+                for (int j = 0; j < grayscaleImage.getWidth(); j++) {
+                    int rgb = grayscaleImage.getRGB(j, i);
+                    int gray = (int) (0.2989 * ((rgb >> 16) & 0xFF) + 0.5870 * ((rgb >> 8) & 0xFF) + 0.1140 * (rgb & 0xFF));
+                    data[index++] = (double) gray / 255.0; // Normalize to [0, 1]
+                }
+            }
+
+            INDArray inputData = Nd4j.create(data).reshape(1, 28*28);
+            INDArray output = NetworkManager.network.model.output(inputData);
+            //Node[] output = NetworkManager.feedForward(data);
             OutputDisplay display = new OutputDisplay(output);
         }
     }
 
     private File renderImage() throws IOException {
-        BufferedImage image = new BufferedImage(Constant.imageSize, Constant.imageSize, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(Constant.drawingBoardSize, Constant.drawingBoardSize, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
-        graphics.drawImage(this.originalImage, 0, 0, Constant.imageSize, Constant.imageSize, null);
+        graphics.drawImage(this.originalImage, 0, 0, Constant.drawingBoardSize, Constant.drawingBoardSize, null);
 
         File drawing = new File("input/input.jpg");
         if(!drawing.exists()) drawing.createNewFile();

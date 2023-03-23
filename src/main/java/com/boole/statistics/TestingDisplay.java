@@ -18,6 +18,7 @@ public class TestingDisplay extends JPanel implements ActionListener {
     private double totalCount;
     private double successRate;
     private double networkCost;
+    private String statistics;
 
     public TestingDisplay(double[] results) {
         setLayout(null);
@@ -44,6 +45,32 @@ public class TestingDisplay extends JPanel implements ActionListener {
         this.networkCost = results[2];
 
         this.addComponents();
+        this.revalidate();
+        this.repaint();
+    }
+
+    public TestingDisplay(String results) {
+        setLayout(null);
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+
+        this.window = new JFrame();
+        this.window.setContentPane(this);
+        this.window.setTitle("Digit Detector");
+        this.window.getContentPane().setPreferredSize(new Dimension(720, 480));
+        this.window.getContentPane().setBackground(Color.BLACK);
+        this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.window.pack();
+        this.window.setLocationRelativeTo(null);
+        this.window.setVisible(true);
+        this.window.setResizable(false);
+        this.graphics = (Graphics2D) this.window.getGraphics();
+
+        Settings.setGraphicsRendering(this.graphics);
+
+        this.statistics = results;
+
+        this.addComponentsMLM();
         this.revalidate();
         this.repaint();
     }
@@ -77,8 +104,32 @@ public class TestingDisplay extends JPanel implements ActionListener {
         this.window.add(homeButton);
     }
 
+    private void addComponentsMLM() {
+        JLabel stats = new JLabel(formatText(this.statistics));
+        stats.setName("label1");
+        stats.setFont(style.bigFont);
+        stats.setForeground(style.lightText);
+        stats.setVisible(true);
+        stats.setBounds(30, 0, 400, 500);
+
+        JButton homeButton = new JButton();
+        homeButton.setText("Home");
+        homeButton.setName("home");
+        homeButton.setFocusable(false);
+        homeButton.addActionListener(this);
+        homeButton.setMargin(new Insets(1, 1, 1, 1));
+        homeButton.setBounds(650, 460, 70, 20);
+        homeButton.setVisible(true);
+
+        this.window.add(stats);
+        this.window.add(homeButton);
+    }
+
     private String centerFormatHeader(String text) {
         return "<html><h1 align=center>" + text + "</h1></html>";
+    }
+    private String formatText(String text) {
+        return "<html><h5>" + text.replaceAll("\n", "<br>") + "</h5></html>";
     }
 
     @Override

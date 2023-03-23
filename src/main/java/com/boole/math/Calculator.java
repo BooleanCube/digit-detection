@@ -23,8 +23,7 @@ import com.boole.network.models.Node;
  */
 public class Calculator {
 
-    public static final double biasLearnRate = 0.0001;
-    public static final double weightLearnRate = 0.001;
+    public static final double learnRate = 0.01d;
 
     private final static double sigmoidStretch = 1;
 

@@ -4,6 +4,7 @@ import com.boole.Home;
 import com.boole.Settings;
 import com.boole.network.models.Node;
 import com.boole.style;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,6 +38,36 @@ public class OutputDisplay extends JPanel implements ActionListener {
         Settings.setGraphicsRendering(this.graphics);
 
         this.output = guess;
+        this.formatOutput();
+
+        this.addComponents();
+        this.revalidate();
+        this.repaint();
+    }
+
+    public OutputDisplay(INDArray guess) {
+        setLayout(null);
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+
+        this.window = new JFrame();
+        this.window.setContentPane(this);
+        this.window.setTitle("Digit Detector");
+        this.window.getContentPane().setPreferredSize(new Dimension(720, 480));
+        this.window.getContentPane().setBackground(Color.BLACK);
+        this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.window.pack();
+        this.window.setLocationRelativeTo(null);
+        this.window.setVisible(true);
+        this.window.setResizable(false);
+        this.graphics = (Graphics2D) this.window.getGraphics();
+
+        Settings.setGraphicsRendering(this.graphics);
+
+        this.output = new Node[(int) guess.length()];
+        for(int i=0; i<guess.length(); i++) {
+            this.output[i] = new Node(guess.getDouble(i));
+        }
         this.formatOutput();
 
         this.addComponents();

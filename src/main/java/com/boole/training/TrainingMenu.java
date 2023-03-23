@@ -9,7 +9,6 @@ import org.json.simple.parser.ParseException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.AffineTransformOp;
 import java.io.IOException;
 
 public class TrainingMenu extends JPanel implements ActionListener {
@@ -50,7 +49,7 @@ public class TrainingMenu extends JPanel implements ActionListener {
         chooseText.setBounds(88, 26, 800, 200);
 
         JButton trainButton = new JButton();
-        trainButton.setText(centerFormatText("Train the neural network with randomly shuffled training data (5 epochs)"));
+        trainButton.setText(centerFormatText("Train the neural network with randomly shuffled training data (10 epochs)"));
         trainButton.setFont(style.normalFont);
         trainButton.setName("train");
         trainButton.setFocusable(false);
@@ -109,22 +108,24 @@ public class TrainingMenu extends JPanel implements ActionListener {
 
             this.closeWindow();
 
-            try {
-                NetworkManager.getNetwork().getParamManager().resetTrainingData();
-            } catch(IOException e) { throw new RuntimeException(e); }
+//            try {
+//                NetworkManager.getNetwork().getParamManager().resetTrainingData();
+//            } catch(IOException e) { throw new RuntimeException(e); }
+            NetworkManager.network.init(); // reset all the training data
 
             // restart application after resetting all training data
             Home home = new Home();
         } else if(command.startsWith("train")) {
-            try {
-                // NetworkManager.miniBatchTraining(500, 5, 0.001);
-                // NetworkManager.miniBatchTrainingOptimized(500, 5, 0.001);
-                // NetworkManager.parallelBatchTraining(500, 5, 0.001);
-                // NetworkManager.parallelDataTraining(5, 0.001);
-                NetworkManager.stochasticGradientDescent(5, 0.001);
-            } catch (IOException | ParseException e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                 NetworkManager.miniBatchTraining(500, 5, 0.001);
+//                 NetworkManager.miniBatchTrainingOptimized(500, 5, 0.001);
+//                 NetworkManager.parallelBatchTraining(500, 5, 0.001);
+//                 NetworkManager.parallelDataTraining(5, 0.001);
+//                NetworkManager.stochasticGradientDescent(3, 0.01);
+//            } catch (IOException | ParseException e) {
+//                throw new RuntimeException(e);
+//            }
+            NetworkManager.network.trainNetwork();
         } else if(command.equals("home")) {
             this.closeWindow();
 

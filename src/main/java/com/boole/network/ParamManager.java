@@ -66,16 +66,20 @@ public class ParamManager {
     }
 
     public void resetTrainingData() throws IOException {
-        final int maxBound = 2;
-        final int minBound = -maxBound;
+        final float maxBound = 0.5f;
+        final float minBound = -maxBound;
 
         JSONObject json = new JSONObject();
         JSONArray jsonData = new JSONArray();
-        for(int i=0; i<paramCount; i++) {
+        for(int i=0; i<weightCount; i++) {
             Random generator = new Random();
             double random = minBound + (maxBound-minBound) * generator.nextDouble();
             parameters[i] = random;
             jsonData.add(i, random);
+        }
+        for(int i=weightCount; i<paramCount; i++) {
+            parameters[i] = 0d;
+            jsonData.add(i, 0d);
         }
         json.put("params", jsonData);
 
